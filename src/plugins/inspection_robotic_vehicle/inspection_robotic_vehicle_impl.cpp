@@ -26,27 +26,27 @@ InspectionRoboticVehicleImpl::~InspectionRoboticVehicleImpl()
 void InspectionRoboticVehicleImpl::init()
 {
     _parent->register_mavlink_message_handler(
-        MAVLINK_MSG_ID_INSPECTION_TASKS_COUNT,
+        MAVLINK_MSG_ID_WAYPOINT_LIST_COUNT,
         [this](const mavlink_message_t& message) {
-            LogDebug() << "Inspection count message received!";
-            mavlink_inspection_tasks_count_t count;
-            mavlink_msg_inspection_tasks_count_decode(&message, &count);
-            download_inspection(count.mission_id, count.count);
+            LogDebug() << "Waypoint list count message received!";
+            mavlink_waypoint_list_count_t count;
+            mavlink_msg_waypoint_list_count_decode(&message, &count);
+            download_inspection(count.count);
         },
         this);
 
     _parent->register_mavlink_message_handler(
-        MAVLINK_MSG_ID_INSPECTION_TASKS_REQUEST,
+        MAVLINK_MSG_ID_WAYPOINT_LIST_REQUEST,
         [this](const mavlink_message_t&) {
-            LogDebug() << "Inspection request list message received!";
+            LogDebug() << "Waypoint list request message received!";
             upload_inspection();
         },
         this);
 
     _parent->register_mavlink_message_handler(
-        MAVLINK_MSG_ID_INSPECTION_TASKS_SET_CURRENT_ITEM,
+        MAVLINK_MSG_ID_WAYPOINT_LIST_SET_CURRENT_ITEM,
         [this](const mavlink_message_t& message) {
-            LogDebug() << "Inspection set current message received!";
+            LogDebug() << "Waypoint list set current message received!";
             process_inspection_set_current(message);
         },
         this);
@@ -62,18 +62,18 @@ void InspectionRoboticVehicleImpl::enable() {}
 void InspectionRoboticVehicleImpl::disable() {}
 
 void InspectionRoboticVehicleImpl::set_upload_inspection(
-    const InspectionBase::InspectionPlan& inspection_plan)
+    const InspectionBase::WaypointList& list)
 {
     std::lock_guard<std::recursive_mutex> lock(_inspection_data.mutex);
-    _inspection_data.plan = inspection_plan;
+    _inspection_data.list = list;
 }
 
 void InspectionRoboticVehicleImpl::upload_inspection_async(
-    const InspectionBase::InspectionPlan& inspection_plan,
+    const InspectionBase::WaypointList& list,
     const InspectionBase::ResultAckCallback& callback)
 {
     std::lock_guard<std::recursive_mutex> lock(_inspection_data.mutex);
-    _inspection_data.plan = inspection_plan;
+    _inspection_data.list = list;
     _inspection_data.upload_callback = callback;
 }
 
@@ -95,9 +95,8 @@ void InspectionRoboticVehicleImpl::upload_inspection()
         return;
     }
 
-    MAVLinkInspectionTransfer::TasksPlan plan;
-    plan.mission_id = _inspection_data.plan.mission_id;
-    plan.items = convert_to_int_items(_inspection_data.plan.inspection_items);
+    MAVLinkInspectionTransfer::WaypointList list;
+    list.items = convert_to_int_items(_inspection_data.list.items);
 
     LogDebug() << "Convert to int items done";
 
@@ -109,7 +108,7 @@ void InspectionRoboticVehicleImpl::upload_inspection()
     }
 
     _inspection_data.last_upload = inspection_transfer->upload_items_async(
-        plan, [this](MAVLinkInspectionTransfer::Result result, MAVLinkInspectionTransfer::Ack ack) {
+        list, [this](MAVLinkInspectionTransfer::Result result, MAVLinkInspectionTransfer::Ack ack) {
             auto result_and_ack = convert_to_result_and_ack(result, ack);
             std::lock_guard<std::recursive_mutex> lock_cb(_inspection_data.mutex);
             if (_inspection_data.upload_callback) {
@@ -140,8 +139,7 @@ void InspectionRoboticVehicleImpl::download_inspection_async(
     _inspection_data.download_callback = callback;
 }
 
-void InspectionRoboticVehicleImpl::download_inspection(
-    const uint16_t mission_id, const uint16_t count)
+void InspectionRoboticVehicleImpl::download_inspection(const uint16_t count)
 {
     std::lock_guard<std::recursive_mutex> lock(_inspection_data.mutex);
 
@@ -153,8 +151,8 @@ void InspectionRoboticVehicleImpl::download_inspection(
     if (_inspection_data.last_download.lock()) {
         auto temp_callback = _inspection_data.download_callback;
         _parent->call_user_callback([temp_callback]() {
-            InspectionBase::InspectionPlan inspection_plan{};
-            temp_callback(InspectionBase::Result::Busy, inspection_plan);
+            InspectionBase::WaypointList list{};
+            temp_callback(InspectionBase::Result::Busy, list);
         });
         return;
     }
@@ -167,16 +165,15 @@ void InspectionRoboticVehicleImpl::download_inspection(
     }
 
     _inspection_data.last_download = inspection_transfer->download_items_async(
-        mission_id,
         count,
         [this](
-            MAVLinkInspectionTransfer::Result result, MAVLinkInspectionTransfer::TasksPlan plan) {
-            auto result_and_plan = convert_to_result_and_inspection_plan(result, plan);
+            MAVLinkInspectionTransfer::Result result, MAVLinkInspectionTransfer::WaypointList list) {
+            auto result_and_list = convert_to_result_and_waypoint_list(result, list);
             std::lock_guard<std::recursive_mutex> lock_cb(_inspection_data.mutex);
             if (_inspection_data.download_callback) {
                 auto temp_callback = _inspection_data.download_callback;
-                _parent->call_user_callback([temp_callback, result_and_plan]() {
-                    temp_callback(result_and_plan.first, result_and_plan.second);
+                _parent->call_user_callback([temp_callback, result_and_list]() {
+                    temp_callback(result_and_list.first, result_and_list.second);
                 });
             }
         });
@@ -204,7 +201,7 @@ void InspectionRoboticVehicleImpl::inspection_set_current_async(
 void InspectionRoboticVehicleImpl::update_current_inspection_item(const uint16_t item_seq)
 {
     mavlink_message_t message;
-    mavlink_msg_inspection_tasks_current_item_pack(
+    mavlink_msg_waypoint_list_current_item_pack(
         _parent->get_own_system_id(),
         _parent->get_own_component_id(),
         &message,
@@ -216,7 +213,7 @@ void InspectionRoboticVehicleImpl::update_current_inspection_item(const uint16_t
 void InspectionRoboticVehicleImpl::update_reached_inspection_item(const uint16_t item_seq)
 {
     mavlink_message_t message;
-    mavlink_msg_inspection_tasks_item_reached_pack(
+    mavlink_msg_waypoint_list_item_reached_pack(
         _parent->get_own_system_id(),
         _parent->get_own_component_id(),
         &message,
@@ -227,8 +224,8 @@ void InspectionRoboticVehicleImpl::update_reached_inspection_item(const uint16_t
 
 void InspectionRoboticVehicleImpl::process_inspection_set_current(const mavlink_message_t& message)
 {
-    mavlink_inspection_tasks_set_current_item_t inspection_set_current;
-    mavlink_msg_inspection_tasks_set_current_item_decode(&message, &inspection_set_current);
+    mavlink_waypoint_list_set_current_item_t set_current;
+    mavlink_msg_waypoint_list_set_current_item_decode(&message, &set_current);
 
     InspectionBase::InspectionSetCurrentCallback temp_callback;
 
@@ -238,63 +235,63 @@ void InspectionRoboticVehicleImpl::process_inspection_set_current(const mavlink_
     }
 
     if (temp_callback) {
-        const auto seq = inspection_set_current.seq;
+        const auto seq = set_current.seq;
         _parent->call_user_callback([temp_callback, seq]() { temp_callback(seq); });
     }
 }
 
-std::vector<MAVLinkInspectionTransfer::TasksItem>
+std::vector<MAVLinkInspectionTransfer::WaypointItem>
 InspectionRoboticVehicleImpl::convert_to_int_items(
-    const std::vector<InspectionBase::InspectionItem>& inspection_items)
+    const std::vector<InspectionBase::WaypointItem>& items)
 {
-    std::vector<MAVLinkInspectionTransfer::TasksItem> int_items;
+    std::vector<MAVLinkInspectionTransfer::WaypointItem> int_items;
 
-    for (const auto& item : inspection_items) {
-        MAVLinkInspectionTransfer::TasksItem next_item{static_cast<uint16_t>(int_items.size()),
-                                                       item.command,
-                                                       item.autocontinue,
-                                                       item.param1,
-                                                       item.param2,
-                                                       item.param3,
-                                                       item.param4,
-                                                       item.x,
-                                                       item.y,
-                                                       item.z};
-
+    for (const auto& item : items) {
+        MAVLinkInspectionTransfer::WaypointItem next_item{
+            static_cast<uint16_t>(int_items.size()),
+            item.task_id,
+            item.command,
+            item.autocontinue,
+            item.param1,
+            item.param2,
+            item.param3,
+            item.param4,
+            item.x,
+            item.y,
+            item.z};
         int_items.push_back(next_item);
     }
 
     return int_items;
 }
 
-std::pair<InspectionBase::Result, InspectionBase::InspectionPlan>
-InspectionRoboticVehicleImpl::convert_to_result_and_inspection_plan(
-    MAVLinkInspectionTransfer::Result result, MAVLinkInspectionTransfer::TasksPlan& plan)
+std::pair<InspectionBase::Result, InspectionBase::WaypointList>
+InspectionRoboticVehicleImpl::convert_to_result_and_waypoint_list(
+    MAVLinkInspectionTransfer::Result result, MAVLinkInspectionTransfer::WaypointList& list)
 {
-    std::pair<InspectionBase::Result, InspectionBase::InspectionPlan> result_pair;
+    std::pair<InspectionBase::Result, InspectionBase::WaypointList> result_pair;
 
     result_pair.first = convert_result(result);
     if (result_pair.first != InspectionBase::Result::Success) {
         return result_pair;
     }
 
-    result_pair.second.mission_id = plan.mission_id;
-
-    InspectionBase::InspectionItem new_inspection_item{};
-    for (const auto& int_item : plan.items) {
+    InspectionBase::WaypointItem new_item{};
+    for (const auto& int_item : list.items) {
         LogDebug() << "Assembling Message: " << int(int_item.seq);
 
-        new_inspection_item.command = int_item.command;
-        new_inspection_item.autocontinue = int_item.autocontinue;
-        new_inspection_item.param1 = int_item.param1;
-        new_inspection_item.param2 = int_item.param2;
-        new_inspection_item.param3 = int_item.param3;
-        new_inspection_item.param4 = int_item.param4;
-        new_inspection_item.x = int_item.x;
-        new_inspection_item.y = int_item.y;
-        new_inspection_item.z = int_item.z;
+        new_item.task_id      = int_item.task_id;
+        new_item.command      = int_item.command;
+        new_item.autocontinue = int_item.autocontinue;
+        new_item.param1       = int_item.param1;
+        new_item.param2       = int_item.param2;
+        new_item.param3       = int_item.param3;
+        new_item.param4       = int_item.param4;
+        new_item.x            = int_item.x;
+        new_item.y            = int_item.y;
+        new_item.z            = int_item.z;
 
-        result_pair.second.inspection_items.push_back(new_inspection_item);
+        result_pair.second.items.push_back(new_item);
     }
 
     return result_pair;

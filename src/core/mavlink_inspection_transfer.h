@@ -43,8 +43,9 @@ public:
         Unknown
     };
 
-    struct TasksItem {
+    struct WaypointItem {
         uint16_t seq;
+        uint32_t task_id;
         uint16_t command;
         uint8_t autocontinue;
         float param1;
@@ -55,29 +56,28 @@ public:
         float y;
         float z;
 
-        bool operator==(const TasksItem& other) const
+        bool operator==(const WaypointItem& other) const
         {
             return (
-                seq == other.seq && command == other.command &&
+                seq == other.seq && task_id == other.task_id && command == other.command &&
                 autocontinue == other.autocontinue && param1 == other.param1 &&
                 param2 == other.param2 && param3 == other.param3 && param4 == other.param4 &&
                 x == other.x && y == other.y && z == other.z);
         }
     };
 
-    struct TasksPlan {
-        uint16_t mission_id{0};
-        std::vector<TasksItem> items{};
+    struct WaypointList {
+        std::vector<WaypointItem> items{};
 
-        bool operator==(const TasksPlan& other) const
+        bool operator==(const WaypointList& other) const
         {
-            return (mission_id == other.mission_id && items == other.items);
+            return items == other.items;
         }
     };
 
     using ResultCallback = std::function<void(Result result)>;
     using ResultAndAckCallback = std::function<void(Result result, Ack ack)>;
-    using ResultAndPlanCallback = std::function<void(Result result, TasksPlan plan)>;
+    using ResultAndListCallback = std::function<void(Result result, WaypointList list)>;
 
     class WorkItem {
     public:

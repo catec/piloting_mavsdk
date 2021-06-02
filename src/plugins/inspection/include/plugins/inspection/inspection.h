@@ -11,7 +11,7 @@ class System;
 class InspectionImpl;
 
 /**
- * @brief Enable waypoint inspections.
+ * @brief Enable waypoint list.
  */
 class Inspection : public PluginBase {
 public:
@@ -47,23 +47,23 @@ public:
     ~Inspection();
 
     /**
-     * @brief Upload a list of inspection items to the system.
+     * @brief Upload a list of waypoint items to the system.
      *
      * This function is non-blocking. See 'upload_inspection' for the blocking counterpart.
      */
     void upload_inspection_async(
-        InspectionBase::InspectionPlan inspection_plan,
+        InspectionBase::WaypointList list,
         const InspectionBase::ResultAckCallback callback);
 
     /**
-     * @brief Upload a list of inspection items to the system.
+     * @brief Upload a list of waypoint items to the system.
      *
      * This function is blocking. See 'upload_inspection_async' for the non-blocking counterpart.
      *
      * @return Result of request.
      */
     std::pair<InspectionBase::Result, InspectionBase::Ack>
-    upload_inspection(InspectionBase::InspectionPlan inspection_plan) const;
+    upload_inspection(InspectionBase::WaypointList list) const;
 
     /**
      * @brief Cancel an ongoing inspection upload.
@@ -75,20 +75,20 @@ public:
     InspectionBase::Result cancel_inspection_upload() const;
 
     /**
-     * @brief Download a list of inspection items from the system (asynchronous).
+     * @brief Download a list of waypoint items from the system (asynchronous).
      *
      * This function is non-blocking. See 'download_inspection' for the blocking counterpart.
      */
     void download_inspection_async(const InspectionBase::DownloadInspectionCallback callback);
 
     /**
-     * @brief Download a list of inspection items from the system (asynchronous).
+     * @brief Download a list of waypoint items from the system (asynchronous).
      *
      * This function is blocking. See 'download_inspection_async' for the non-blocking counterpart.
      *
      * @return Result of request.
      */
-    std::pair<InspectionBase::Result, InspectionBase::InspectionPlan> download_inspection() const;
+    std::pair<InspectionBase::Result, InspectionBase::WaypointList> download_inspection() const;
 
     /**
      * @brief Cancel an ongoing inspection download.
@@ -100,10 +100,10 @@ public:
     InspectionBase::Result cancel_inspection_download() const;
 
     /**
-     * @brief Sets the inspection item index to go to.
+     * @brief Sets the waypoint item index to go to.
      *
      * By setting the current index to 0, the inspection is restarted from the beginning. If it
-     * is set to a specific index of a inspection item, the inspection will be set to this item.
+     * is set to a specific index of a waypoint item, the inspection will be set to this item.
      *
      * This function is non-blocking.
      */

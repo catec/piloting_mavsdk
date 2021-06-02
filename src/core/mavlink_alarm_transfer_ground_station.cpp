@@ -180,18 +180,18 @@ void MAVLinkAlarmTransferGroundStation::DownloadWorkItem::process_alarm_item(
 
     _timeout_handler.refresh(_cookie);
 
-    mavlink_alarm_list_item_t alarm_tasks_item;
-    mavlink_msg_alarm_list_item_decode(&message, &alarm_tasks_item);
+    mavlink_alarm_list_item_t alarm_list_item;
+    mavlink_msg_alarm_list_item_decode(&message, &alarm_list_item);
 
     _alarm_list.items.push_back(
-        AlarmItem{alarm_tasks_item.index, alarm_tasks_item.name, alarm_tasks_item.description});
+        AlarmItem{alarm_list_item.index, alarm_list_item.name, alarm_list_item.description});
 
     if (_next_sequence + 1 == _expected_count) {
         _timeout_handler.remove(_cookie);
         send_ack_and_finish();
 
     } else {
-        _next_sequence = alarm_tasks_item.index + 1;
+        _next_sequence = alarm_list_item.index + 1;
         _retries_done = 0;
         request_item();
     }

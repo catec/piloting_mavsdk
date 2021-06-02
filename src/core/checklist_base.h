@@ -68,7 +68,7 @@ public:
      * @return A reference to the stream.
      */
     friend std::ostream&
-    operator<<(std::ostream& str, ChecklistBase::Checklist const& checklist_plan);
+    operator<<(std::ostream& str, ChecklistBase::Checklist const& list);
 
     /**
      * @brief Possible ACKs returned for action requests.

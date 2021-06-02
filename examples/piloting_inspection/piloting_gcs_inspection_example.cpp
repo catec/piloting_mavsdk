@@ -15,7 +15,8 @@ using namespace std::chrono;
 #define RESULT_CONSOLE_TEXT "\033[34m" // Turn text on console blue
 #define NORMAL_CONSOLE_TEXT "\033[0m" // Restore normal console colour
 
-static InspectionBase::InspectionItem make_inspection_item(
+static InspectionBase::WaypointItem make_waypoint_item(
+    uint32_t task_id,
     uint16_t command,
     uint8_t autocontinue,
     float param1,
@@ -67,24 +68,23 @@ int main(int, char**)
 
     {
         std::cout << "Creating inspection to be sent..." << std::endl;
-        std::vector<InspectionBase::InspectionItem> inspection_items;
-        inspection_items.push_back(make_inspection_item(
-            MAV_CMD_NAV_WAYPOINT, 1, 1.1f, 2.2f, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f));
-        inspection_items.push_back(make_inspection_item(
-            MAV_CMD_NAV_WAYPOINT, 1, 2.2f, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f, 8.8f));
-        inspection_items.push_back(make_inspection_item(
-            MAV_CMD_NAV_WAYPOINT, 1, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f, 8.8f, 9.9f));
-        InspectionBase::InspectionPlan inspection_plan{};
-        inspection_plan.mission_id = 25;
-        inspection_plan.inspection_items = inspection_items;
-        std::cout << RESULT_CONSOLE_TEXT << inspection_plan << NORMAL_CONSOLE_TEXT << std::endl;
+        std::vector<InspectionBase::WaypointItem> waypoint_items;
+        waypoint_items.push_back(make_waypoint_item(
+            12345, MAV_CMD_NAV_WAYPOINT, 1, 1.1f, 2.2f, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f));
+        waypoint_items.push_back(make_waypoint_item(
+            12346, MAV_CMD_NAV_WAYPOINT, 1, 2.2f, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f, 8.8f));
+        waypoint_items.push_back(make_waypoint_item(
+            12347, MAV_CMD_NAV_WAYPOINT, 1, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f, 8.8f, 9.9f));
+        InspectionBase::WaypointList waypoint_list{};
+        waypoint_list.items = waypoint_items;
+        std::cout << RESULT_CONSOLE_TEXT << waypoint_list << NORMAL_CONSOLE_TEXT << std::endl;
 
         std::cout << "Uploading inspection..." << std::endl;
         auto prom = std::make_shared<
             std::promise<std::pair<InspectionBase::Result, InspectionBase::Ack>>>();
         auto future_result = prom->get_future();
         inspection.upload_inspection_async(
-            inspection_plan, [prom](InspectionBase::Result result, InspectionBase::Ack ack) {
+            waypoint_list, [prom](InspectionBase::Result result, InspectionBase::Ack ack) {
                 prom->set_value(std::make_pair<>(result, ack));
             });
 
@@ -130,7 +130,8 @@ int main(int, char**)
     return EXIT_SUCCESS;
 }
 
-InspectionBase::InspectionItem make_inspection_item(
+InspectionBase::WaypointItem make_waypoint_item(
+    uint32_t task_id,
     uint16_t command,
     uint8_t autocontinue,
     float param1,
@@ -141,7 +142,8 @@ InspectionBase::InspectionItem make_inspection_item(
     float y,
     float z)
 {
-    InspectionBase::InspectionItem new_item{};
+    InspectionBase::WaypointItem new_item{};
+    new_item.task_id = task_id;
     new_item.command = command;
     new_item.autocontinue = autocontinue;
     new_item.param1 = param1;

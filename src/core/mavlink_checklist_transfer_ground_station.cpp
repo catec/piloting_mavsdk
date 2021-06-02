@@ -181,18 +181,18 @@ void MAVLinkChecklistTransferGroundStation::DownloadWorkItem::process_checklist_
 
     _timeout_handler.refresh(_cookie);
 
-    mavlink_check_list_item_t checklist_tasks_item;
-    mavlink_msg_check_list_item_decode(&message, &checklist_tasks_item);
+    mavlink_check_list_item_t checklist_item;
+    mavlink_msg_check_list_item_decode(&message, &checklist_item);
 
     _checklist.items.push_back(ChecklistItem{
-        checklist_tasks_item.index, checklist_tasks_item.name, checklist_tasks_item.description});
+        checklist_item.index, checklist_item.name, checklist_item.description});
 
     if (_next_sequence + 1 == _expected_count) {
         _timeout_handler.remove(_cookie);
         send_ack_and_finish();
 
     } else {
-        _next_sequence = checklist_tasks_item.index + 1;
+        _next_sequence = checklist_item.index + 1;
         _retries_done = 0;
         request_item();
     }

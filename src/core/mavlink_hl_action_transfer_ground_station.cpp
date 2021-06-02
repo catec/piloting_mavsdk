@@ -181,19 +181,19 @@ void MAVLinkHLActionTransferGroundStation::DownloadWorkItem::process_hl_action_i
 
     _timeout_handler.refresh(_cookie);
 
-    mavlink_hl_action_list_item_t hl_action_tasks_item;
-    mavlink_msg_hl_action_list_item_decode(&message, &hl_action_tasks_item);
+    mavlink_hl_action_list_item_t hl_action_list_item;
+    mavlink_msg_hl_action_list_item_decode(&message, &hl_action_list_item);
 
-    _hl_action_list.items.push_back(HLActionItem{hl_action_tasks_item.index,
-                                                 hl_action_tasks_item.command,
-                                                 hl_action_tasks_item.name,
-                                                 hl_action_tasks_item.description});
+    _hl_action_list.items.push_back(HLActionItem{hl_action_list_item.index,
+                                                 hl_action_list_item.command,
+                                                 hl_action_list_item.name,
+                                                 hl_action_list_item.description});
 
     if (_next_sequence + 1 == _expected_count) {
         _timeout_handler.remove(_cookie);
         send_ack_and_finish();
     } else {
-        _next_sequence = hl_action_tasks_item.index + 1;
+        _next_sequence = hl_action_list_item.index + 1;
         _retries_done = 0;
         request_item();
     }

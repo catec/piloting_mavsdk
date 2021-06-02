@@ -58,18 +58,18 @@ int main(int, char**)
 
     auto inspection_rv = InspectionRoboticVehicle{target_system};
 
-    std::mutex local_inspection_mutex;
-    InspectionBase::InspectionPlan local_inspection_plan;
+    std::mutex local_waypoint_list_mutex;
+    InspectionBase::WaypointList local_waypoint_list;
 
     inspection_rv.download_inspection_async(
-        [&](InspectionBase::Result result, InspectionBase::InspectionPlan inspection_plan) {
+        [&](InspectionBase::Result result, InspectionBase::WaypointList waypoint_list) {
             std::cout << RESULT_CONSOLE_TEXT << "Inspection download result is: " << result
                       << NORMAL_CONSOLE_TEXT << std::endl;
-            std::cout << RESULT_CONSOLE_TEXT << inspection_plan << NORMAL_CONSOLE_TEXT << std::endl;
+            std::cout << RESULT_CONSOLE_TEXT << waypoint_list << NORMAL_CONSOLE_TEXT << std::endl;
 
             if (result == InspectionBase::Result::Success) {
-                std::lock_guard<std::mutex> lock(local_inspection_mutex);
-                local_inspection_plan = inspection_plan;
+                std::lock_guard<std::mutex> lock(local_waypoint_list_mutex);
+                local_waypoint_list = waypoint_list;
             }
         });
 
@@ -79,15 +79,15 @@ int main(int, char**)
         [&](InspectionBase::Result result, InspectionBase::Ack ack) {
             std::cout << RESULT_CONSOLE_TEXT << "Inspection upload result/ack is: " << result
                       << " / " << ack << NORMAL_CONSOLE_TEXT << std::endl;
-            std::lock_guard<std::mutex> lock(local_inspection_mutex);
+            std::lock_guard<std::mutex> lock(local_waypoint_list_mutex);
             inspection_upload = true;
         });
 
     std::cout << "Waiting for inspection download..." << std::endl;
     for (;;) {
         {
-            std::lock_guard<std::mutex> lock(local_inspection_mutex);
-            if (local_inspection_plan.inspection_items.size() != 0) {
+            std::lock_guard<std::mutex> lock(local_waypoint_list_mutex);
+            if (local_waypoint_list.items.size() != 0) {
                 std::cout << "Inspection download!" << std::endl;
                 break;
             }
@@ -97,19 +97,19 @@ int main(int, char**)
 
     {
         std::cout << "Modifying local inspection and setting it..." << std::endl;
-        std::lock_guard<std::mutex> lock(local_inspection_mutex);
-        local_inspection_plan.inspection_items[0].x = 10.10f;
-        local_inspection_plan.inspection_items[0].y = 11.11f;
-        local_inspection_plan.inspection_items[0].z = 12.12f;
-        inspection_rv.set_upload_inspection(local_inspection_plan);
-        std::cout << RESULT_CONSOLE_TEXT << local_inspection_plan << NORMAL_CONSOLE_TEXT
+        std::lock_guard<std::mutex> lock(local_waypoint_list_mutex);
+        local_waypoint_list.items[0].x = 10.10f;
+        local_waypoint_list.items[0].y = 11.11f;
+        local_waypoint_list.items[0].z = 12.12f;
+        inspection_rv.set_upload_inspection(local_waypoint_list);
+        std::cout << RESULT_CONSOLE_TEXT << local_waypoint_list << NORMAL_CONSOLE_TEXT
                   << std::endl;
     }
 
     std::cout << "Waiting for inspection upload..." << std::endl;
     for (;;) {
         {
-            std::lock_guard<std::mutex> lock(local_inspection_mutex);
+            std::lock_guard<std::mutex> lock(local_waypoint_list_mutex);
             if (inspection_upload) {
                 std::cout << "Inspection upload!" << std::endl;
                 break;
@@ -123,15 +123,15 @@ int main(int, char**)
     inspection_rv.subscribe_inspection_set_current([&](uint16_t seq) {
         std::cout << RESULT_CONSOLE_TEXT << "Inspection set current received: " << seq
                   << NORMAL_CONSOLE_TEXT << std::endl;
-        std::lock_guard<std::mutex> lock(local_inspection_mutex);
+        std::lock_guard<std::mutex> lock(local_waypoint_list_mutex);
         inspection_current = seq;
-        if (inspection_current < local_inspection_plan.inspection_items.size())
+        if (inspection_current < local_waypoint_list.items.size())
             inspection_rv.update_current_inspection_item(inspection_current);
     });
 
     {
-        std::lock_guard<std::mutex> lock(local_inspection_mutex);
-        if (inspection_current < local_inspection_plan.inspection_items.size())
+        std::lock_guard<std::mutex> lock(local_waypoint_list_mutex);
+        if (inspection_current < local_waypoint_list.items.size())
             inspection_rv.update_current_inspection_item(inspection_current);
     }
 
@@ -139,10 +139,10 @@ int main(int, char**)
     for (;;) {
         sleep_for(seconds(2));
 
-        std::lock_guard<std::mutex> lock(local_inspection_mutex);
-        if (inspection_current < local_inspection_plan.inspection_items.size())
+        std::lock_guard<std::mutex> lock(local_waypoint_list_mutex);
+        if (inspection_current < local_waypoint_list.items.size())
             inspection_rv.update_reached_inspection_item(inspection_current++);
-        if (inspection_current < local_inspection_plan.inspection_items.size())
+        if (inspection_current < local_waypoint_list.items.size())
             inspection_rv.update_current_inspection_item(inspection_current);
     }
 

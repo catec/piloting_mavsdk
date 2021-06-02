@@ -24,7 +24,7 @@ public:
             Sender& sender,
             MAVLinkMessageHandler& message_handler,
             TimeoutHandler& timeout_handler,
-            const TasksPlan& plan,
+            const WaypointList& list,
             ResultAndAckCallback callback);
 
         virtual ~UploadWorkItem();
@@ -53,7 +53,7 @@ public:
             SendItems,
         } _step{Step::SendCount};
 
-        TasksPlan _plan{};
+        WaypointList _list{};
         Ack _ack{Ack::Unknown};
         ResultAndAckCallback _callback{nullptr};
         std::size_t _next_sequence{0};
@@ -67,7 +67,7 @@ public:
             Sender& sender,
             MAVLinkMessageHandler& message_handler,
             TimeoutHandler& timeout_handler,
-            ResultAndPlanCallback callback);
+            ResultAndListCallback callback);
 
         virtual ~DownloadWorkItem();
         void start() override;
@@ -94,8 +94,8 @@ public:
             RequestItem,
         } _step{Step::RequestList};
 
-        TasksPlan _plan{};
-        ResultAndPlanCallback _callback{nullptr};
+        WaypointList _list{};
+        ResultAndListCallback _callback{nullptr};
         void* _cookie{nullptr};
         std::size_t _next_sequence{0};
         std::size_t _expected_count{0};
@@ -107,9 +107,9 @@ public:
 
     ~MAVLinkInspectionTransferGroundStation();
 
-    std::weak_ptr<WorkItem> upload_items_async(const TasksPlan& plan, ResultAndAckCallback callback);
+    std::weak_ptr<WorkItem> upload_items_async(const WaypointList& list, ResultAndAckCallback callback);
 
-    std::weak_ptr<WorkItem> download_items_async(ResultAndPlanCallback callback);
+    std::weak_ptr<WorkItem> download_items_async(ResultAndListCallback callback);
 
     // Non-copyable
     MAVLinkInspectionTransferGroundStation(const MAVLinkInspectionTransferGroundStation&) = delete;

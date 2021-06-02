@@ -5,9 +5,10 @@
 namespace mavsdk {
 
 bool operator==(
-    const InspectionBase::InspectionItem& lhs, const InspectionBase::InspectionItem& rhs)
+    const InspectionBase::WaypointItem& lhs, const InspectionBase::WaypointItem& rhs)
 {
-    return (rhs.command == lhs.command) &&
+    return (rhs.task_id == lhs.task_id) &&
+           (rhs.command == lhs.command) &&
            (rhs.autocontinue == lhs.autocontinue) &&
            ((std::isnan(rhs.param1) && std::isnan(lhs.param1)) ||
             rhs.param1 == lhs.param1) &&
@@ -25,46 +26,45 @@ bool operator==(
             rhs.z == lhs.z);
 }
 
-std::ostream& operator<<(std::ostream& str, InspectionBase::InspectionItem const& inspection_item)
+std::ostream& operator<<(std::ostream& str, InspectionBase::WaypointItem const& item)
 {
     str << std::setprecision(15);
-    str << "inspection_item:\n";
+    str << "waypoint_item:\n";
     str << "{\n";
-    str << "    command: " << inspection_item.command << '\n';
-    str << "    autocontinue: " << unsigned(inspection_item.autocontinue) << '\n';
-    str << "    param1: " << inspection_item.param1 << '\n';
-    str << "    param2: " << inspection_item.param2 << '\n';
-    str << "    param3: " << inspection_item.param3 << '\n';
-    str << "    param4: " << inspection_item.param4 << '\n';
-    str << "    x: " << inspection_item.x << '\n';
-    str << "    y: " << inspection_item.y << '\n';
-    str << "    z: " << inspection_item.z << '\n';
+    str << "    task_id: " << item.task_id << '\n';
+    str << "    command: " << item.command << '\n';
+    str << "    autocontinue: " << unsigned(item.autocontinue) << '\n';
+    str << "    param1: " << item.param1 << '\n';
+    str << "    param2: " << item.param2 << '\n';
+    str << "    param3: " << item.param3 << '\n';
+    str << "    param4: " << item.param4 << '\n';
+    str << "    x: " << item.x << '\n';
+    str << "    y: " << item.y << '\n';
+    str << "    z: " << item.z << '\n';
     str << '}';
     return str;
 }
 
 bool operator==(
-    const InspectionBase::InspectionPlan& lhs, const InspectionBase::InspectionPlan& rhs)
+    const InspectionBase::WaypointList& lhs, const InspectionBase::WaypointList& rhs)
 {
-    return (rhs.mission_id == lhs.mission_id) &&
-           (rhs.inspection_items == lhs.inspection_items);
+    return rhs.items == lhs.items;
 }
 
-std::ostream& operator<<(std::ostream& str, InspectionBase::InspectionPlan const& inspection_plan)
+std::ostream& operator<<(std::ostream& str, InspectionBase::WaypointList const& list)
 {
     str << std::setprecision(15);
-    str << "inspection_plan:\n";
+    str << "waypoint_list:\n";
     str << "{\n";
-    str << "    mission_id: " << inspection_plan.mission_id << '\n';
-    str << "    inspection_items: [";
-    if (inspection_plan.inspection_items.size() == 0) {
+    str << "    items: [";
+    if (list.items.size() == 0) {
         str << "]\n";
     } else {
-        for (auto it = inspection_plan.inspection_items.begin();
-            it != inspection_plan.inspection_items.end();
+        for (auto it = list.items.begin();
+            it != list.items.end();
             ++it) {
             str << '\n' << *it;
-            str << (it + 1 != inspection_plan.inspection_items.end() ? "," : "]\n");
+            str << (it + 1 != list.items.end() ? "," : "]\n");
         }
     }
     str << '}';
@@ -78,12 +78,12 @@ bool operator==(
 }
 
 std::ostream&
-operator<<(std::ostream& str, InspectionBase::InspectionProgress const& inspection_progress)
+operator<<(std::ostream& str, InspectionBase::InspectionProgress const& progress)
 {
     str << std::setprecision(15);
-    str << "inspection_progress:" << '\n' << "{\n";
-    str << "    current: " << inspection_progress.current << '\n';
-    str << "    reached: " << inspection_progress.reached << '\n';
+    str << "waypoint_progress:" << '\n' << "{\n";
+    str << "    current: " << progress.current << '\n';
+    str << "    reached: " << progress.reached << '\n';
     str << '}';
     return str;
 }

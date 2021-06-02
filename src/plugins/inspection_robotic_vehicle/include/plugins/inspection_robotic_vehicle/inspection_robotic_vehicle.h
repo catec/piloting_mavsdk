@@ -11,7 +11,7 @@ class System;
 class InspectionRoboticVehicleImpl;
 
 /**
- * @brief Enable waypoint inspections.
+ * @brief Enable waypoint list.
  */
 class InspectionRoboticVehicle : public PluginBase {
 public:
@@ -47,23 +47,23 @@ public:
     ~InspectionRoboticVehicle();
 
     /**
-     * @brief Sets the inspection list to be uploaded if requested by gRCS
+     * @brief Sets the waypoint list to be uploaded if requested by gRCS
      *
      * This function is non-blocking.
      */
-    void set_upload_inspection(InspectionBase::InspectionPlan inspection_plan) const;
+    void set_upload_inspection(InspectionBase::WaypointList list) const;
 
     /**
-     * @brief Upload a list of inspection items to the system.
+     * @brief Upload a list of waypoint items to the system.
      *
-     * Every time the robotic vehicle inspection list changes,
+     * Every time the robotic vehicle waypoint list changes,
      * it must be updated through the method 'set_upload_inspection'
      *
      * This function is non-blocking.
      */
     void upload_inspection_async(
         const InspectionBase::ResultAckCallback callback,
-        InspectionBase::InspectionPlan inspection_plan = {});
+        InspectionBase::WaypointList list = {});
 
     /**
      * @brief Cancel an ongoing inspection upload.
@@ -75,7 +75,7 @@ public:
     InspectionBase::Result cancel_inspection_upload() const;
 
     /**
-     * @brief Download a list of inspection items from the system (asynchronous).
+     * @brief Download a list of waypoint items from the system (asynchronous).
      *
      * This function is non-blocking.
      */

@@ -15,15 +15,15 @@ InspectionRoboticVehicle::InspectionRoboticVehicle(std::shared_ptr<System> syste
 
 InspectionRoboticVehicle::~InspectionRoboticVehicle() {}
 
-void InspectionRoboticVehicle::set_upload_inspection(InspectionBase::InspectionPlan inspection_plan) const
+void InspectionRoboticVehicle::set_upload_inspection(InspectionBase::WaypointList list) const
 {
-    _impl->set_upload_inspection(inspection_plan);
+    _impl->set_upload_inspection(list);
 }
 
 void InspectionRoboticVehicle::upload_inspection_async(
-    const InspectionBase::ResultAckCallback callback, InspectionBase::InspectionPlan inspection_plan)
+    const InspectionBase::ResultAckCallback callback, InspectionBase::WaypointList list)
 {
-    _impl->upload_inspection_async(inspection_plan, callback);
+    _impl->upload_inspection_async(list, callback);
 }
 
 InspectionBase::Result InspectionRoboticVehicle::cancel_inspection_upload() const

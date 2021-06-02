@@ -20,9 +20,9 @@ public:
     void enable() override;
     void disable() override;
 
-    void set_upload_inspection(const InspectionBase::InspectionPlan& inspection_plan);
+    void set_upload_inspection(const InspectionBase::WaypointList& list);
     void upload_inspection_async(
-        const InspectionBase::InspectionPlan& inspection_plan,
+        const InspectionBase::WaypointList& list,
         const InspectionBase::ResultAckCallback& callback);
     InspectionBase::Result cancel_inspection_upload();
 
@@ -39,16 +39,16 @@ public:
 
 private:
     void upload_inspection();
-    void download_inspection(const uint16_t mission_id, const uint16_t count);
+    void download_inspection(const uint16_t count);
     void process_inspection_set_current(const mavlink_message_t& message);
 
-    std::vector<MAVLinkInspectionTransfer::TasksItem>
-    convert_to_int_items(const std::vector<InspectionBase::InspectionItem>& inspection_items);
+    std::vector<MAVLinkInspectionTransfer::WaypointItem>
+    convert_to_int_items(const std::vector<InspectionBase::WaypointItem>& items);
 
     // FIXME: make static
-    std::pair<InspectionBase::Result, InspectionBase::InspectionPlan>
-    convert_to_result_and_inspection_plan(
-        MAVLinkInspectionTransfer::Result result, MAVLinkInspectionTransfer::TasksPlan& plan);
+    std::pair<InspectionBase::Result, InspectionBase::WaypointList>
+    convert_to_result_and_waypoint_list(
+        MAVLinkInspectionTransfer::Result result, MAVLinkInspectionTransfer::WaypointList& list);
 
     // FIXME: make static
     std::pair<InspectionBase::Result, InspectionBase::Ack> convert_to_result_and_ack(
@@ -63,7 +63,7 @@ private:
         InspectionBase::ResultAckCallback upload_callback{nullptr};
         InspectionBase::DownloadInspectionCallback download_callback{nullptr};
         InspectionBase::InspectionSetCurrentCallback set_current_callback{nullptr};
-        InspectionBase::InspectionPlan plan{};
+        InspectionBase::WaypointList list{};
         std::weak_ptr<MAVLinkInspectionTransfer::WorkItem> last_upload{};
         std::weak_ptr<MAVLinkInspectionTransfer::WorkItem> last_download{};
     } _inspection_data{};

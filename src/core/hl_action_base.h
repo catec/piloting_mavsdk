@@ -69,7 +69,7 @@ public:
      * @return A reference to the stream.
      */
     friend std::ostream&
-    operator<<(std::ostream& str, HLActionBase::HLActionList const& hl_action_plan);
+    operator<<(std::ostream& str, HLActionBase::HLActionList const& list);
 
     /**
      * @brief Possible ACKs returned for action requests.

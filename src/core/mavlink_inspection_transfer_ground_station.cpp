@@ -11,10 +11,10 @@ MAVLinkInspectionTransferGroundStation::MAVLinkInspectionTransferGroundStation(
 MAVLinkInspectionTransferGroundStation::~MAVLinkInspectionTransferGroundStation() {}
 
 std::weak_ptr<MAVLinkInspectionTransfer::WorkItem>
-MAVLinkInspectionTransferGroundStation::upload_items_async(const TasksPlan &plan, ResultAndAckCallback callback)
+MAVLinkInspectionTransferGroundStation::upload_items_async(const WaypointList &list, ResultAndAckCallback callback)
 {
     auto ptr = std::make_shared<UploadWorkItem>(
-        _sender, _message_handler, _timeout_handler, plan, callback);
+        _sender, _message_handler, _timeout_handler, list, callback);
 
     _work_queue.push_back(ptr);
 
@@ -22,7 +22,7 @@ MAVLinkInspectionTransferGroundStation::upload_items_async(const TasksPlan &plan
 }
 
 std::weak_ptr<MAVLinkInspectionTransfer::WorkItem>
-MAVLinkInspectionTransferGroundStation::download_items_async(ResultAndPlanCallback callback)
+MAVLinkInspectionTransferGroundStation::download_items_async(ResultAndListCallback callback)
 {
     auto ptr =
         std::make_shared<DownloadWorkItem>(_sender, _message_handler, _timeout_handler, callback);
@@ -35,24 +35,24 @@ MAVLinkInspectionTransferGroundStation::download_items_async(ResultAndPlanCallba
 MAVLinkInspectionTransferGroundStation::UploadWorkItem::UploadWorkItem(Sender& sender,
     MAVLinkMessageHandler& message_handler,
     TimeoutHandler& timeout_handler,
-    const TasksPlan& plan,
+    const WaypointList& list,
     ResultAndAckCallback callback) :
     WorkItem(sender, message_handler, timeout_handler),
-    _plan(plan),
+    _list(list),
     _callback(callback)
 {
     std::lock_guard<std::mutex> lock(_mutex);
 
     _message_handler.register_one(
-        MAVLINK_MSG_ID_INSPECTION_TASKS_READ,
+        MAVLINK_MSG_ID_WAYPOINT_LIST_READ,
         [this](const mavlink_message_t& message) {
-            LogDebug() << "Inspection tasks read received";
+            LogDebug() << "Waypoint list read received";
             process_inspection_read(message);
         },
         this);
 
     _message_handler.register_one(
-        MAVLINK_MSG_ID_INSPECTION_TASKS_ACK,
+        MAVLINK_MSG_ID_WAYPOINT_LIST_ACK,
         [this](const mavlink_message_t& message) { process_inspection_ack(message); },
         this);
 }
@@ -76,7 +76,7 @@ void MAVLinkInspectionTransferGroundStation::UploadWorkItem::start()
 //    }
 
     int count = 0;
-    for (const auto& item : _plan.items) {
+    for (const auto& item : _list.items) {
         if (count++ != item.seq) {
             callback_and_reset(Result::InvalidSequence);
             return;
@@ -103,14 +103,13 @@ void MAVLinkInspectionTransferGroundStation::UploadWorkItem::cancel()
 void MAVLinkInspectionTransferGroundStation::UploadWorkItem::send_count()
 {
     mavlink_message_t message;
-    mavlink_msg_inspection_tasks_count_pack(
+    mavlink_msg_waypoint_list_count_pack(
         _sender.own_address.system_id,
         _sender.own_address.component_id,
         &message,
         _sender.target_address.system_id,
         _sender.target_address.component_id,
-        _plan.mission_id,
-        _plan.items.size());
+        _list.items.size());
 
     if (!_sender.send_message(message)) {
         _timeout_handler.remove(_cookie);
@@ -118,7 +117,7 @@ void MAVLinkInspectionTransferGroundStation::UploadWorkItem::send_count()
         return;
     }
 
-    LogDebug() << "Inspection count sent: " << _plan.items.size();
+    LogDebug() << "Waypoint list count sent: " << _list.items.size();
 
     ++_retries_done;
 }
@@ -126,13 +125,13 @@ void MAVLinkInspectionTransferGroundStation::UploadWorkItem::send_count()
 void MAVLinkInspectionTransferGroundStation::UploadWorkItem::send_cancel_and_finish()
 {
     mavlink_message_t message;
-    mavlink_msg_inspection_tasks_ack_pack(
+    mavlink_msg_waypoint_list_ack_pack(
         _sender.own_address.system_id,
         _sender.own_address.component_id,
         &message,
         _sender.target_address.system_id,
         _sender.target_address.component_id,
-        INSPECTION_TASKS_CANCELLED);
+        WAYPOINT_LIST_CANCELLED);
 
     if (!_sender.send_message(message)) {
         callback_and_reset(Result::ConnectionError);
@@ -148,18 +147,18 @@ void MAVLinkInspectionTransferGroundStation::UploadWorkItem::process_inspection_
 {
     std::lock_guard<std::mutex> lock(_mutex);
 
-    mavlink_inspection_tasks_read_t inspection_tasks_read;
-    mavlink_msg_inspection_tasks_read_decode(&message, &inspection_tasks_read);
+    mavlink_waypoint_list_read_t waypoint_list_read;
+    mavlink_msg_waypoint_list_read_decode(&message, &waypoint_list_read);
 
     _step = Step::SendItems;
 
-    if (_next_sequence < inspection_tasks_read.seq) {
+    if (_next_sequence < waypoint_list_read.seq) {
         // We should not go back to a previous one.
         // TODO: figure out if we should error here.
-        LogWarn() << "inspection_request_int: sequence incorrect";
+        LogWarn() << "process_inspection_read: sequence incorrect";
         return;
 
-    } else if (_next_sequence > inspection_tasks_read.seq) {
+    } else if (_next_sequence > waypoint_list_read.seq) {
         // We have already sent that one before.
         if (_retries_done >= retries) {
             _timeout_handler.remove(_cookie);
@@ -174,27 +173,28 @@ void MAVLinkInspectionTransferGroundStation::UploadWorkItem::process_inspection_
 
     _timeout_handler.refresh(_cookie);
 
-    _next_sequence = inspection_tasks_read.seq;
+    _next_sequence = waypoint_list_read.seq;
     send_inspection_item();
 }
 
 void MAVLinkInspectionTransferGroundStation::UploadWorkItem::send_inspection_item()
 {
-    if (_next_sequence >= _plan.items.size()) {
+    if (_next_sequence >= _list.items.size()) {
         LogErr() << "send_inspection_item: sequence out of bounds";
         return;
     }
 
-    const auto item = _plan.items[_next_sequence];
+    const auto item = _list.items[_next_sequence];
 
     mavlink_message_t message;
-    mavlink_msg_inspection_tasks_item_pack(
+    mavlink_msg_waypoint_list_item_pack(
         _sender.own_address.system_id,
         _sender.own_address.component_id,
         &message,
         _sender.target_address.system_id,
         _sender.target_address.component_id,
         _next_sequence,
+        item.task_id,
         item.command,
         item.autocontinue,
         item.param1,
@@ -223,52 +223,52 @@ void MAVLinkInspectionTransferGroundStation::UploadWorkItem::process_inspection_
 {
     std::lock_guard<std::mutex> lock(_mutex);
 
-    mavlink_inspection_tasks_ack_t inspection_tasks_ack;
-    mavlink_msg_inspection_tasks_ack_decode(&message, &inspection_tasks_ack);
+    mavlink_waypoint_list_ack_t waypoint_list_ack;
+    mavlink_msg_waypoint_list_ack_decode(&message, &waypoint_list_ack);
 
     _timeout_handler.remove(_cookie);
 
-    switch (inspection_tasks_ack.type) {
-        case INSPECTION_TASKS_ACCEPTED:
+    switch (waypoint_list_ack.type) {
+        case WAYPOINT_LIST_ACCEPTED:
             _ack = Ack::Accepted;
             break;
-        case INSPECTION_TASKS_ERROR:
+        case WAYPOINT_LIST_ERROR:
             _ack = Ack::Error;
             break;
-        case INSPECTION_TASKS_UNSUPPORTED:
+        case WAYPOINT_LIST_UNSUPPORTED:
             _ack = Ack::Unsupported;
             break;
-        case INSPECTION_TASKS_NO_SPACE:
+        case WAYPOINT_LIST_NO_SPACE:
             _ack = Ack::NoSpace;
             break;
-        case INSPECTION_TASKS_INVALID:
+        case WAYPOINT_LIST_INVALID:
             _ack = Ack::Invalid;
             break;
-        case INSPECTION_TASKS_INVALID_PARAM1:
+        case WAYPOINT_LIST_INVALID_PARAM1:
             _ack = Ack::InvalidParam1;
             break;
-        case INSPECTION_TASKS_INVALID_PARAM2:
+        case WAYPOINT_LIST_INVALID_PARAM2:
             _ack = Ack::InvalidParam2;
             break;
-        case INSPECTION_TASKS_INVALID_PARAM3:
+        case WAYPOINT_LIST_INVALID_PARAM3:
             _ack = Ack::InvalidParam3;
             break;
-        case INSPECTION_TASKS_INVALID_PARAM4:
+        case WAYPOINT_LIST_INVALID_PARAM4:
             _ack = Ack::InvalidParam4;
             break;
-        case INSPECTION_TASKS_INVALID_PARAM5:
+        case WAYPOINT_LIST_INVALID_PARAM5:
             _ack = Ack::InvalidParam5;
             break;
-        case INSPECTION_TASKS_INVALID_PARAM6:
+        case WAYPOINT_LIST_INVALID_PARAM6:
             _ack = Ack::InvalidParam6;
             break;
-        case INSPECTION_TASKS_INVALID_PARAM7:
+        case WAYPOINT_LIST_INVALID_PARAM7:
             _ack = Ack::InvalidParam7;
             break;
-        case INSPECTION_TASKS_INVALID_SEQUENCE:
+        case WAYPOINT_LIST_INVALID_SEQUENCE:
             _ack = Ack::InvalidSequence;
             break;
-        case INSPECTION_TASKS_CANCELLED:
+        case WAYPOINT_LIST_CANCELLED:
             _ack = Ack::Cancelled;
             break;
         default:
@@ -276,7 +276,7 @@ void MAVLinkInspectionTransferGroundStation::UploadWorkItem::process_inspection_
             break;
     }
 
-    if (_next_sequence == _plan.items.size()) {
+    if (_next_sequence == _list.items.size()) {
         callback_and_reset(Result::Success);
     } else {
         callback_and_reset(Result::ProtocolError);
@@ -317,22 +317,22 @@ MAVLinkInspectionTransferGroundStation::DownloadWorkItem::DownloadWorkItem(
     Sender& sender,
     MAVLinkMessageHandler& message_handler,
     TimeoutHandler& timeout_handler,
-    ResultAndPlanCallback callback) :
+    ResultAndListCallback callback) :
     WorkItem(sender, message_handler, timeout_handler),
     _callback(callback)
 {
     std::lock_guard<std::mutex> lock(_mutex);
 
     _message_handler.register_one(
-        MAVLINK_MSG_ID_INSPECTION_TASKS_COUNT,
+        MAVLINK_MSG_ID_WAYPOINT_LIST_COUNT,
         [this](const mavlink_message_t& message) {
-            LogDebug() << "Inspection count message received!";
+            LogDebug() << "Waypoint list count message received!";
             process_inspection_count(message);
         },
         this);
 
     _message_handler.register_one(
-        MAVLINK_MSG_ID_INSPECTION_TASKS_ITEM,
+        MAVLINK_MSG_ID_WAYPOINT_LIST_ITEM,
         [this](const mavlink_message_t& message) { process_inspection_item(message); },
         this);
 }
@@ -349,7 +349,7 @@ void MAVLinkInspectionTransferGroundStation::DownloadWorkItem::start()
 {
     std::lock_guard<std::mutex> lock(_mutex);
 
-    _plan.items.clear();
+    _list.items.clear();
     _started = true;
     _retries_done = 0;
     _timeout_handler.add([this]() { process_timeout(); }, timeout_s, &_cookie);
@@ -367,7 +367,7 @@ void MAVLinkInspectionTransferGroundStation::DownloadWorkItem::cancel()
 void MAVLinkInspectionTransferGroundStation::DownloadWorkItem::request_list()
 {
     mavlink_message_t message;
-    mavlink_msg_inspection_tasks_request_pack(
+    mavlink_msg_waypoint_list_request_pack(
         _sender.own_address.system_id,
         _sender.own_address.component_id,
         &message,
@@ -386,7 +386,7 @@ void MAVLinkInspectionTransferGroundStation::DownloadWorkItem::request_list()
 void MAVLinkInspectionTransferGroundStation::DownloadWorkItem::request_item()
 {
     mavlink_message_t message;
-    mavlink_msg_inspection_tasks_read_pack(
+    mavlink_msg_waypoint_list_read_pack(
         _sender.own_address.system_id,
         _sender.own_address.component_id,
         &message,
@@ -406,13 +406,13 @@ void MAVLinkInspectionTransferGroundStation::DownloadWorkItem::request_item()
 void MAVLinkInspectionTransferGroundStation::DownloadWorkItem::send_ack_and_finish()
 {
     mavlink_message_t message;
-    mavlink_msg_inspection_tasks_ack_pack(
+    mavlink_msg_waypoint_list_ack_pack(
         _sender.own_address.system_id,
         _sender.own_address.component_id,
         &message,
         _sender.target_address.system_id,
         _sender.target_address.component_id,
-        INSPECTION_TASKS_ACCEPTED);
+        WAYPOINT_LIST_ACCEPTED);
 
     if (!_sender.send_message(message)) {
         callback_and_reset(Result::ConnectionError);
@@ -426,13 +426,13 @@ void MAVLinkInspectionTransferGroundStation::DownloadWorkItem::send_ack_and_fini
 void MAVLinkInspectionTransferGroundStation::DownloadWorkItem::send_cancel_and_finish()
 {
     mavlink_message_t message;
-    mavlink_msg_inspection_tasks_ack_pack(
+    mavlink_msg_waypoint_list_ack_pack(
         _sender.own_address.system_id,
         _sender.own_address.component_id,
         &message,
         _sender.target_address.system_id,
         _sender.target_address.component_id,
-        INSPECTION_TASKS_CANCELLED);
+        WAYPOINT_LIST_CANCELLED);
 
     if (!_sender.send_message(message)) {
         callback_and_reset(Result::ConnectionError);
@@ -448,11 +448,11 @@ void MAVLinkInspectionTransferGroundStation::DownloadWorkItem::process_inspectio
 {
     std::lock_guard<std::mutex> lock(_mutex);
 
-    mavlink_inspection_tasks_count_t count;
-    mavlink_msg_inspection_tasks_count_decode(&message, &count);
+    mavlink_waypoint_list_count_t count;
+    mavlink_msg_waypoint_list_count_decode(&message, &count);
 
     if (count.count == 0) {
-        LogDebug() << "Inspection count is 0. Sending ACK and finishing";
+        LogDebug() << "Waypoint_list_count is 0. Sending ACK and finishing";
         send_ack_and_finish();
         _timeout_handler.remove(_cookie);
         return;
@@ -463,7 +463,6 @@ void MAVLinkInspectionTransferGroundStation::DownloadWorkItem::process_inspectio
     _step = Step::RequestItem;
     _retries_done = 0;
     _expected_count = count.count;
-    _plan.mission_id = count.mission_id;
     request_item();
 }
 
@@ -474,26 +473,27 @@ void MAVLinkInspectionTransferGroundStation::DownloadWorkItem::process_inspectio
 
     _timeout_handler.refresh(_cookie);
 
-    mavlink_inspection_tasks_item_t inspection_tasks_item;
-    mavlink_msg_inspection_tasks_item_decode(&message, &inspection_tasks_item);
+    mavlink_waypoint_list_item_t waypoint_list_item;
+    mavlink_msg_waypoint_list_item_decode(&message, &waypoint_list_item);
 
-    _plan.items.push_back(TasksItem{inspection_tasks_item.seq,
-                                    inspection_tasks_item.command,
-                                    inspection_tasks_item.autocontinue,
-                                    inspection_tasks_item.param1,
-                                    inspection_tasks_item.param2,
-                                    inspection_tasks_item.param3,
-                                    inspection_tasks_item.param4,
-                                    inspection_tasks_item.x,
-                                    inspection_tasks_item.y,
-                                    inspection_tasks_item.z});
+    _list.items.push_back(WaypointItem{waypoint_list_item.seq,
+                                       waypoint_list_item.task_id,
+                                       waypoint_list_item.command,
+                                       waypoint_list_item.autocontinue,
+                                       waypoint_list_item.param1,
+                                       waypoint_list_item.param2,
+                                       waypoint_list_item.param3,
+                                       waypoint_list_item.param4,
+                                       waypoint_list_item.x,
+                                       waypoint_list_item.y,
+                                       waypoint_list_item.z});
 
     if (_next_sequence + 1 == _expected_count) {
         _timeout_handler.remove(_cookie);
         send_ack_and_finish();
 
     } else {
-        _next_sequence = inspection_tasks_item.seq + 1;
+        _next_sequence = waypoint_list_item.seq + 1;
         _retries_done = 0;
         request_item();
     }
@@ -524,7 +524,7 @@ void MAVLinkInspectionTransferGroundStation::DownloadWorkItem::process_timeout()
 void MAVLinkInspectionTransferGroundStation::DownloadWorkItem::callback_and_reset(Result result)
 {
     if (_callback) {
-        _callback(result, _plan);
+        _callback(result, _list);
     }
     _callback = nullptr;
     _done = true;

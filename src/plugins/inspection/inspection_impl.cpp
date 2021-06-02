@@ -25,12 +25,12 @@ InspectionImpl::~InspectionImpl()
 void InspectionImpl::init()
 {
     _parent->register_mavlink_message_handler(
-        MAVLINK_MSG_ID_INSPECTION_TASKS_CURRENT_ITEM,
+        MAVLINK_MSG_ID_WAYPOINT_LIST_CURRENT_ITEM,
         std::bind(&InspectionImpl::process_inspection_current, this, _1),
         this);
 
     _parent->register_mavlink_message_handler(
-        MAVLINK_MSG_ID_INSPECTION_TASKS_ITEM_REACHED,
+        MAVLINK_MSG_ID_WAYPOINT_LIST_ITEM_REACHED,
         std::bind(&InspectionImpl::process_inspection_item_reached, this, _1),
         this);
 }
@@ -59,8 +59,8 @@ void InspectionImpl::reset_inspection_progress()
 
 void InspectionImpl::process_inspection_current(const mavlink_message_t& message)
 {
-    mavlink_inspection_tasks_current_item_t inspection_current;
-    mavlink_msg_inspection_tasks_current_item_decode(&message, &inspection_current);
+    mavlink_waypoint_list_current_item_t inspection_current;
+    mavlink_msg_waypoint_list_current_item_decode(&message, &inspection_current);
 
     bool should_report = false;
     {
@@ -77,8 +77,8 @@ void InspectionImpl::process_inspection_current(const mavlink_message_t& message
 
 void InspectionImpl::process_inspection_item_reached(const mavlink_message_t& message)
 {
-    mavlink_inspection_tasks_item_reached_t inspection_item_reached;
-    mavlink_msg_inspection_tasks_item_reached_decode(&message, &inspection_item_reached);
+    mavlink_waypoint_list_item_reached_t inspection_item_reached;
+    mavlink_msg_waypoint_list_item_reached_decode(&message, &inspection_item_reached);
 
     bool should_report = false;
     {
@@ -94,20 +94,20 @@ void InspectionImpl::process_inspection_item_reached(const mavlink_message_t& me
 }
 
 std::pair<InspectionBase::Result, InspectionBase::Ack>
-InspectionImpl::upload_inspection(const InspectionBase::InspectionPlan& inspection_plan)
+InspectionImpl::upload_inspection(const InspectionBase::WaypointList& list)
 {
     auto prom = std::promise<std::pair<InspectionBase::Result, InspectionBase::Ack>>();
     auto fut = prom.get_future();
 
     upload_inspection_async(
-        inspection_plan, [&prom](InspectionBase::Result result, InspectionBase::Ack ack) {
+        list, [&prom](InspectionBase::Result result, InspectionBase::Ack ack) {
             prom.set_value(std::make_pair<>(result, ack));
         });
     return fut.get();
 }
 
 void InspectionImpl::upload_inspection_async(
-    const InspectionBase::InspectionPlan& inspection_plan,
+    const InspectionBase::WaypointList& list,
     const InspectionBase::ResultAckCallback& callback)
 {
     if (_inspection_data.last_upload.lock()) {
@@ -121,9 +121,8 @@ void InspectionImpl::upload_inspection_async(
 
     reset_inspection_progress();
 
-    MAVLinkInspectionTransfer::TasksPlan plan;
-    plan.mission_id = inspection_plan.mission_id;
-    plan.items = convert_to_int_items(inspection_plan.inspection_items);
+    MAVLinkInspectionTransfer::WaypointList wp_list;
+    wp_list.items = convert_to_int_items(list.items);
 
     auto inspection_transfer = std::dynamic_pointer_cast<MAVLinkInspectionTransferGroundStation>(
         _parent->inspection_transfer());
@@ -133,8 +132,8 @@ void InspectionImpl::upload_inspection_async(
     }
 
     _inspection_data.last_upload = inspection_transfer->upload_items_async(
-        plan,
-        [this, plan, callback](
+        wp_list,
+        [this, list, callback](
             MAVLinkInspectionTransfer::Result result, MAVLinkInspectionTransfer::Ack ack) {
             auto result_and_ack = convert_to_result_and_ack(result, ack);
             _parent->call_user_callback([callback, result_and_ack]() {
@@ -157,15 +156,15 @@ InspectionBase::Result InspectionImpl::cancel_inspection_upload()
     return InspectionBase::Result::Success;
 }
 
-std::pair<InspectionBase::Result, InspectionBase::InspectionPlan>
+std::pair<InspectionBase::Result, InspectionBase::WaypointList>
 InspectionImpl::download_inspection()
 {
-    auto prom = std::promise<std::pair<InspectionBase::Result, InspectionBase::InspectionPlan>>();
+    auto prom = std::promise<std::pair<InspectionBase::Result, InspectionBase::WaypointList>>();
     auto fut = prom.get_future();
 
     download_inspection_async(
-        [&prom](InspectionBase::Result result, InspectionBase::InspectionPlan inspection_plan) {
-            prom.set_value(std::make_pair<>(result, inspection_plan));
+        [&prom](InspectionBase::Result result, InspectionBase::WaypointList list) {
+            prom.set_value(std::make_pair<>(result, list));
         });
     return fut.get();
 }
@@ -176,8 +175,8 @@ void InspectionImpl::download_inspection_async(
     if (_inspection_data.last_download.lock()) {
         _parent->call_user_callback([callback]() {
             if (callback) {
-                InspectionBase::InspectionPlan inspection_plan{};
-                callback(InspectionBase::Result::Busy, inspection_plan);
+                InspectionBase::WaypointList list{};
+                callback(InspectionBase::Result::Busy, list);
             }
         });
         return;
@@ -192,11 +191,11 @@ void InspectionImpl::download_inspection_async(
 
     _inspection_data.last_download = inspection_transfer->download_items_async(
         [this, callback](
-            MAVLinkInspectionTransfer::Result result, MAVLinkInspectionTransfer::TasksPlan plan) {
-            auto result_and_plan = convert_to_result_and_inspection_plan(result, plan);
-            _parent->call_user_callback([callback, result_and_plan]() {
+            MAVLinkInspectionTransfer::Result result, MAVLinkInspectionTransfer::WaypointList list) {
+            auto result_and_list = convert_to_result_and_waypoint_list(result, list);
+            _parent->call_user_callback([callback, result_and_list]() {
                 if (callback) {
-                    callback(result_and_plan.first, result_and_plan.second);
+                    callback(result_and_list.first, result_and_list.second);
                 }
             });
         });
@@ -214,32 +213,33 @@ InspectionBase::Result InspectionImpl::cancel_inspection_download()
     return InspectionBase::Result::Success;
 }
 
-std::vector<MAVLinkInspectionTransfer::TasksItem>
-InspectionImpl::convert_to_int_items(const std::vector<InspectionBase::InspectionItem>& inspection_items)
+std::vector<MAVLinkInspectionTransfer::WaypointItem>
+InspectionImpl::convert_to_int_items(const std::vector<InspectionBase::WaypointItem>& items)
 {
-    std::vector<MAVLinkInspectionTransfer::TasksItem> int_items;
-    for (const auto& item : inspection_items) {
-        MAVLinkInspectionTransfer::TasksItem next_item{static_cast<uint16_t>(int_items.size()),
-                                                       item.command,
-                                                       item.autocontinue,
-                                                       item.param1,
-                                                       item.param2,
-                                                       item.param3,
-                                                       item.param4,
-                                                       item.x,
-                                                       item.y,
-                                                       item.z};
-
+    std::vector<MAVLinkInspectionTransfer::WaypointItem> int_items;
+    for (const auto& item : items) {
+        MAVLinkInspectionTransfer::WaypointItem next_item{
+            static_cast<uint16_t>(int_items.size()),
+            item.task_id,
+            item.command,
+            item.autocontinue,
+            item.param1,
+            item.param2,
+            item.param3,
+            item.param4,
+            item.x,
+            item.y,
+            item.z};
         int_items.push_back(next_item);
     }
     return int_items;
 }
 
-std::pair<InspectionBase::Result, InspectionBase::InspectionPlan>
-InspectionImpl::convert_to_result_and_inspection_plan(
-    MAVLinkInspectionTransfer::Result result, MAVLinkInspectionTransfer::TasksPlan& plan)
+std::pair<InspectionBase::Result, InspectionBase::WaypointList>
+InspectionImpl::convert_to_result_and_waypoint_list(
+    MAVLinkInspectionTransfer::Result result, MAVLinkInspectionTransfer::WaypointList& list)
 {
-    std::pair<InspectionBase::Result, InspectionBase::InspectionPlan> result_pair;
+    std::pair<InspectionBase::Result, InspectionBase::WaypointList> result_pair;
 
     result_pair.first = convert_result(result);
     if (result_pair.first != InspectionBase::Result::Success) {
@@ -253,23 +253,22 @@ InspectionImpl::convert_to_result_and_inspection_plan(
     //        return result_pair;
     //    }
 
-    result_pair.second.mission_id = plan.mission_id;
-
-    InspectionBase::InspectionItem new_inspection_item{};
-    for (const auto& int_item : plan.items) {
+    InspectionBase::WaypointItem new_item{};
+    for (const auto& int_item : list.items) {
         LogDebug() << "Assembling Message: " << int(int_item.seq);
 
-        new_inspection_item.command = int_item.command;
-        new_inspection_item.autocontinue = int_item.autocontinue;
-        new_inspection_item.param1 = int_item.param1;
-        new_inspection_item.param2 = int_item.param2;
-        new_inspection_item.param3 = int_item.param3;
-        new_inspection_item.param4 = int_item.param4;
-        new_inspection_item.x = int_item.x;
-        new_inspection_item.y = int_item.y;
-        new_inspection_item.z = int_item.z;
+        new_item.task_id      = int_item.task_id;
+        new_item.command      = int_item.command;
+        new_item.autocontinue = int_item.autocontinue;
+        new_item.param1       = int_item.param1;
+        new_item.param2       = int_item.param2;
+        new_item.param3       = int_item.param3;
+        new_item.param4       = int_item.param4;
+        new_item.x            = int_item.x;
+        new_item.y            = int_item.y;
+        new_item.z            = int_item.z;
 
-        result_pair.second.inspection_items.push_back(new_inspection_item);
+        result_pair.second.items.push_back(new_item);
     }
 
     return result_pair;
@@ -278,7 +277,7 @@ InspectionImpl::convert_to_result_and_inspection_plan(
 void InspectionImpl::set_current_inspection_item(uint16_t current)
 {
     mavlink_message_t message;
-    mavlink_msg_inspection_tasks_set_current_item_pack(
+    mavlink_msg_waypoint_list_set_current_item_pack(
         _parent->get_own_system_id(),
         _parent->get_own_component_id(),
         &message,
@@ -296,7 +295,7 @@ void InspectionImpl::report_progress()
 
     {
         std::lock_guard<std::recursive_mutex> lock(_inspection_data.mutex);
-        temp_callback = _inspection_data.inspection_progress_callback;
+        temp_callback = _inspection_data.progress_callback;
         current = _inspection_data.last_current_mavlink_inspection_item;
         reached = _inspection_data.last_reached_mavlink_inspection_item;
         _inspection_data.last_current_reported_inspection_item = current;
@@ -315,16 +314,16 @@ void InspectionImpl::report_progress()
 InspectionBase::InspectionProgress InspectionImpl::inspection_progress()
 {
     std::lock_guard<std::recursive_mutex> lock(_inspection_data.mutex);
-    InspectionBase::InspectionProgress inspection_progress;
-    inspection_progress.current = _inspection_data.last_current_mavlink_inspection_item;
-    inspection_progress.reached = _inspection_data.last_reached_mavlink_inspection_item;
-    return inspection_progress;
+    InspectionBase::InspectionProgress progress;
+    progress.current = _inspection_data.last_current_mavlink_inspection_item;
+    progress.reached = _inspection_data.last_reached_mavlink_inspection_item;
+    return progress;
 }
 
 void InspectionImpl::inspection_progress_async(InspectionBase::InspectionProgressCallback callback)
 {
     std::lock_guard<std::recursive_mutex> lock(_inspection_data.mutex);
-    _inspection_data.inspection_progress_callback = callback;
+    _inspection_data.progress_callback = callback;
 }
 
 std::pair<InspectionBase::Result, InspectionBase::Ack> InspectionImpl::convert_to_result_and_ack(

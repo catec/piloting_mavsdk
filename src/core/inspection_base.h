@@ -23,14 +23,15 @@ public:
     virtual ~InspectionBase() = default;
 
     /**
-     * @brief Type representing a inspection item.
+     * @brief Type representing a waypoint item.
      *
-     * A InspectionItem can contain a position and/or actions.
-     * Inspection items are building blocks to assemble a inspection,
+     * A WaypointItem can contain a position and/or actions.
+     * Waypoint items are building blocks to assemble a inspection,
      * which can be sent to (or received from) a system.
      * They cannot be used independently.
      */
-    struct InspectionItem {
+    struct WaypointItem {
+        uint32_t task_id{0};
         uint16_t command{0};
         uint8_t autocontinue{0};
         float param1{0};
@@ -43,51 +44,50 @@ public:
     };
 
     /**
-     * @brief Equal operator to compare two `InspectionBase::InspectionItem` objects.
+     * @brief Equal operator to compare two `InspectionBase::WaypointItem` objects.
      *
      * @return `true` if items are equal.
      */
     friend bool operator==(
-        const InspectionBase::InspectionItem& lhs, const InspectionBase::InspectionItem& rhs);
+        const InspectionBase::WaypointItem& lhs, const InspectionBase::WaypointItem& rhs);
 
     /**
-     * @brief Stream operator to print information about a `InspectionBase::InspectionItem`.
+     * @brief Stream operator to print information about a `InspectionBase::WaypointItem`.
      *
      * @return A reference to the stream.
      */
     friend std::ostream&
-    operator<<(std::ostream& str, InspectionBase::InspectionItem const& inspection_item);
+    operator<<(std::ostream& str, InspectionBase::WaypointItem const& item);
 
     /**
-     * @brief Inspection plan type
+     * @brief Waypoint list
      */
-    struct InspectionPlan {
-        uint16_t mission_id{0};
-        std::vector<InspectionItem> inspection_items{}; /**< @brief The inspection items */
+    struct WaypointList {
+        std::vector<WaypointItem> items{}; /**< @brief The waypoint items */
     };
 
     /**
-     * @brief Equal operator to compare two `InspectionBase::InspectionPlan` objects.
+     * @brief Equal operator to compare two `InspectionBase::WaypointList` objects.
      *
      * @return `true` if items are equal.
      */
     friend bool operator==(
-        const InspectionBase::InspectionPlan& lhs, const InspectionBase::InspectionPlan& rhs);
+        const InspectionBase::WaypointList& lhs, const InspectionBase::WaypointList& rhs);
 
     /**
-     * @brief Stream operator to print information about a `InspectionBase::InspectionPlan`.
+     * @brief Stream operator to print information about a `InspectionBase::WaypointList`.
      *
      * @return A reference to the stream.
      */
     friend std::ostream&
-    operator<<(std::ostream& str, InspectionBase::InspectionPlan const& inspection_plan);
+    operator<<(std::ostream& str, InspectionBase::WaypointList const& list);
 
     /**
      * @brief Inspection progress type.
      */
     struct InspectionProgress {
-        int32_t current{}; /**< @brief Current inspection item index (0-based) */
-        int32_t reached{}; /**< @brief Reached inspection item index (0-based) */
+        int32_t current{}; /**< @brief Current waypoint item index (0-based) */
+        int32_t reached{}; /**< @brief Reached waypoint item index (0-based) */
     };
 
     /**
@@ -105,7 +105,7 @@ public:
      * @return A reference to the stream.
      */
     friend std::ostream&
-    operator<<(std::ostream& str, InspectionBase::InspectionProgress const& inspection_progress);
+    operator<<(std::ostream& str, InspectionBase::InspectionProgress const& progress);
 
     /**
      * @brief Possible ACKs returned for action requests.
@@ -169,7 +169,7 @@ public:
     /**
      * @brief Callback type for download_inspection_async.
      */
-    using DownloadInspectionCallback = std::function<void(Result, InspectionPlan)>;
+    using DownloadInspectionCallback = std::function<void(Result, WaypointList)>;
 
     /**
      * @brief Callback type for subscribe_inspection_progress.

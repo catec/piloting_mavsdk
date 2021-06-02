@@ -21,13 +21,13 @@ public:
     void disable() override;
 
     std::pair<InspectionBase::Result, InspectionBase::Ack>
-    upload_inspection(const InspectionBase::InspectionPlan& inspection_plan);
+    upload_inspection(const InspectionBase::WaypointList& list);
     void upload_inspection_async(
-        const InspectionBase::InspectionPlan& inspection_plan,
+        const InspectionBase::WaypointList& list,
         const InspectionBase::ResultAckCallback& callback);
     InspectionBase::Result cancel_inspection_upload();
 
-    std::pair<InspectionBase::Result, InspectionBase::InspectionPlan> download_inspection();
+    std::pair<InspectionBase::Result, InspectionBase::WaypointList> download_inspection();
     void download_inspection_async(const InspectionBase::DownloadInspectionCallback& callback);
     InspectionBase::Result cancel_inspection_download();
 
@@ -47,13 +47,13 @@ private:
     void report_progress();
     void reset_inspection_progress();
 
-    std::vector<MAVLinkInspectionTransfer::TasksItem>
-    convert_to_int_items(const std::vector<InspectionBase::InspectionItem>& inspection_items);
+    std::vector<MAVLinkInspectionTransfer::WaypointItem>
+    convert_to_int_items(const std::vector<InspectionBase::WaypointItem>& items);
 
     // FIXME: make static
-    std::pair<InspectionBase::Result, InspectionBase::InspectionPlan>
-    convert_to_result_and_inspection_plan(
-        MAVLinkInspectionTransfer::Result result, MAVLinkInspectionTransfer::TasksPlan& plan);
+    std::pair<InspectionBase::Result, InspectionBase::WaypointList>
+    convert_to_result_and_waypoint_list(
+        MAVLinkInspectionTransfer::Result result, MAVLinkInspectionTransfer::WaypointList& list);
 
     // FIXME: make static
     std::pair<InspectionBase::Result, InspectionBase::Ack> convert_to_result_and_ack(
@@ -67,7 +67,7 @@ private:
         mutable std::recursive_mutex mutex{};
         int last_current_mavlink_inspection_item{-1};
         int last_reached_mavlink_inspection_item{-1};
-        InspectionBase::InspectionProgressCallback inspection_progress_callback{nullptr};
+        InspectionBase::InspectionProgressCallback progress_callback{nullptr};
         int last_current_reported_inspection_item{-1};
         int last_reached_reported_inspection_item{-1};
         std::weak_ptr<MAVLinkInspectionTransfer::WorkItem> last_upload{};

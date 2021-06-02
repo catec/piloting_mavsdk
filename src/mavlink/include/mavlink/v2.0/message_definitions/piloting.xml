@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <mavlink>
   <include>common.xml</include>
-  <version>2</version>
+  <version>3</version>
   <enums>
     <!-- PILOTING specific MAV_CMD_* commands -->
     <enum name="MAV_CMD">
@@ -26,49 +26,49 @@
         <param index="7" label="Position Z" units="m">Position component z</param>
       </entry>
     </enum>
-    <enum name="INSPECTION_TASKS_RESULT">
-      <description>Result of inspection tasks operation (in an INSPECTION_TASKS_ACK message).</description>
-      <entry value="0" name="INSPECTION_TASKS_ACCEPTED">
-        <description>Inspection tasks accepted OK.</description>
+    <enum name="WAYPOINT_LIST_RESULT">
+      <description>Result of a waypoint list operation (in an WAYPOINT_LIST_ACK message).</description>
+      <entry value="0" name="WAYPOINT_LIST_ACCEPTED">
+        <description>Waypoint list accepted OK.</description>
       </entry>
-      <entry value="1" name="INSPECTION_TASKS_ERROR">
+      <entry value="1" name="WAYPOINT_LIST_ERROR">
         <description>Generic error.</description>
       </entry>
-      <entry value="2" name="INSPECTION_TASKS_UNSUPPORTED">
+      <entry value="2" name="WAYPOINT_LIST_UNSUPPORTED">
         <description>Command is not supported (unknown).</description>
       </entry>
-      <entry value="3" name="INSPECTION_TASKS_NO_SPACE">
-        <description>Inspection tasks items exceed storage space.</description>
+      <entry value="3" name="WAYPOINT_LIST_NO_SPACE">
+        <description>Waypoint items exceed storage space.</description>
       </entry>
-      <entry value="4" name="INSPECTION_TASKS_INVALID">
+      <entry value="4" name="WAYPOINT_LIST_INVALID">
         <description>One of the parameters has an invalid value.</description>
       </entry>
-      <entry value="5" name="INSPECTION_TASKS_INVALID_PARAM1">
+      <entry value="5" name="WAYPOINT_LIST_INVALID_PARAM1">
         <description>Param1 has an invalid value.</description>
       </entry>
-      <entry value="6" name="INSPECTION_TASKS_INVALID_PARAM2">
+      <entry value="6" name="WAYPOINT_LIST_INVALID_PARAM2">
         <description>Param2 has an invalid value.</description>
       </entry>
-      <entry value="7" name="INSPECTION_TASKS_INVALID_PARAM3">
+      <entry value="7" name="WAYPOINT_LIST_INVALID_PARAM3">
         <description>Param3 has an invalid value.</description>
       </entry>
-      <entry value="8" name="INSPECTION_TASKS_INVALID_PARAM4">
+      <entry value="8" name="WAYPOINT_LIST_INVALID_PARAM4">
         <description>Param4 has an invalid value.</description>
       </entry>
-      <entry value="9" name="INSPECTION_TASKS_INVALID_PARAM5">
+      <entry value="9" name="WAYPOINT_LIST_INVALID_PARAM5">
         <description>Param5 has an invalid value.</description>
       </entry>
-      <entry value="10" name="INSPECTION_TASKS_INVALID_PARAM6">
+      <entry value="10" name="WAYPOINT_LIST_INVALID_PARAM6">
         <description>Param6 has an invalid value.</description>
       </entry>
-      <entry value="11" name="INSPECTION_TASKS_INVALID_PARAM7">
+      <entry value="11" name="WAYPOINT_LIST_INVALID_PARAM7">
         <description>Param7 has an invalid value.</description>
       </entry>
-      <entry value="12" name="INSPECTION_TASKS_INVALID_SEQUENCE">
-        <description>Inspection tasks item received out of sequence.</description>
+      <entry value="12" name="WAYPOINT_LIST_INVALID_SEQUENCE">
+        <description>Waypoint item received out of sequence.</description>
       </entry>
-      <entry value="13" name="INSPECTION_TASKS_CANCELLED">
-        <description>Current inspection tasks operation cancelled (inspection tasks upload or download).</description>
+      <entry value="13" name="WAYPOINT_LIST_CANCELLED">
+        <description>Current waypoint list operation cancelled (waypoint list upload or download).</description>
       </entry>
     </enum>
 
@@ -156,24 +156,24 @@
     </enum>
   </enums>
   <messages>
-    <message id="180" name="INSPECTION_TASKS_COUNT">
-      <description>Send the number of items in the inspection tasks. This is used to initiate inspection tasks upload or as a response to an INSPECTION_TASKS_REQUEST message when downloading the inspection tasks.</description>
+    <message id="180" name="WAYPOINT_LIST_COUNT">
+      <description>Send the number of items in the waypoint list. This is used to initiate a waypoint list upload or as a response to an WAYPOINT_LIST_REQUEST message when downloading the waypoint list.</description>
       <field type="uint8_t" name="target_system">System ID</field>
       <field type="uint8_t" name="target_component">Component ID</field>
-      <field type="uint16_t" name="mission_id">Mission identifier</field>
-      <field type="uint16_t" name="count">Number of inspection tasks items in the sequence</field>
+      <field type="uint16_t" name="count">Number of waypoint items in the sequence</field>
     </message>
-    <message id="181" name="INSPECTION_TASKS_READ">
-      <description>Request inspection tasks item data for a specific sequence number be sent by the recipient using an INSPECTION_TASKS_ITEM message. Used for inspection tasks upload and download.</description>
+    <message id="181" name="WAYPOINT_LIST_READ">
+      <description>Request waypoint item data for a specific sequence number be sent by the recipient using an WAYPOINT_LIST_ITEM message. Used for waypoint list upload and download.</description>
       <field type="uint8_t" name="target_system">System ID</field>
       <field type="uint8_t" name="target_component">Component ID</field>
       <field type="uint16_t" name="seq">Waypoint ID (sequence number). Starts at zero</field>
     </message>
-    <message id="182" name="INSPECTION_TASKS_ITEM">
-      <description>Message encoding an inspection tasks item. Used for inspection tasks upload and download.</description>
+    <message id="182" name="WAYPOINT_LIST_ITEM">
+      <description>Message encoding an waypoint item. Used for waypoint list upload and download.</description>
       <field type="uint8_t" name="target_system">System ID</field>
       <field type="uint8_t" name="target_component">Component ID</field>
       <field type="uint16_t" name="seq">Waypoint ID (sequence number). Starts at zero. Increases monotonically for each waypoint, no gaps in the sequence (0,1,2,3,4)</field>
+      <field type="uint32_t" name="task_id">Identifier of the associated inspection task</field>
       <field type="uint16_t" name="command" enum="MAV_CMD">The scheduled action for the waypoint (see MAV_CMD enum)</field>
       <field type="uint8_t" name="autocontinue">Autocontinue to next waypoint</field>
       <field type="float" name="param1">PARAM1, see MAV_CMD enum</field>
@@ -184,29 +184,29 @@
       <field type="float" name="y">PARAM6 / y position in meters</field>
       <field type="float" name="z">PARAM7 / z position in meters</field>
     </message>
-    <message id="183" name="INSPECTION_TASKS_ACK">
-      <description>Acknowledgment message when a system completes an inspection tasks operation (e.g. sent by robotic vehicle after it has uploaded all inspection tasks items). The message includes an INSPECTION_TASKS_RESULT indicating either success or the type of failure.</description>
+    <message id="183" name="WAYPOINT_LIST_ACK">
+      <description>Acknowledgment message when a system completes a waypoint list operation (e.g. sent by robotic vehicle after it has uploaded all waypoint items). The message includes an WAYPOINT_LIST_RESULT indicating either success or the type of failure.</description>
       <field type="uint8_t" name="target_system">System ID</field>
       <field type="uint8_t" name="target_component">Component ID</field>
-      <field type="uint8_t" name="type" enum="INSPECTION_TASKS_RESULT">Inspection tasks operation result (see INSPECTION_TASKS_RESULT enum)</field>
+      <field type="uint8_t" name="type" enum="WAYPOINT_LIST_RESULT">Waypoint list operation result (see WAYPOINT_LIST_RESULT enum)</field>
     </message>
-    <message id="184" name="INSPECTION_TASKS_REQUEST">
-      <description>Initiate the inspection tasks download operation from a system.</description>
+    <message id="184" name="WAYPOINT_LIST_REQUEST">
+      <description>Initiate the waypoint list download operation from a system.</description>
       <field type="uint8_t" name="target_system">System ID</field>
       <field type="uint8_t" name="target_component">Component ID</field>
     </message>
-    <message id="185" name="INSPECTION_TASKS_SET_CURRENT_ITEM">
-      <description>Set the inspection task item with sequence number seq as current item.</description>
+    <message id="185" name="WAYPOINT_LIST_SET_CURRENT_ITEM">
+      <description>Set the waypoint item with sequence number seq as current item.</description>
       <field type="uint8_t" name="target_system">System ID</field>
       <field type="uint8_t" name="target_component">Component ID</field>
       <field type="uint16_t" name="seq">Waypoint ID (sequence number). Starts at zero</field>
     </message>
-    <message id="186" name="INSPECTION_TASKS_CURRENT_ITEM">
-      <description>Message that announces the sequence number of the current active inspection task item. The robotic vehicle will move towards this item of the inspection tasks.</description>
+    <message id="186" name="WAYPOINT_LIST_CURRENT_ITEM">
+      <description>Message that announces the sequence number of the current active waypoint item. The robotic vehicle will move towards this item of the waypoint list.</description>
       <field type="uint16_t" name="seq">Waypoint ID (sequence number). Starts at zero</field>
     </message>
-    <message id="187" name="INSPECTION_TASKS_ITEM_REACHED">
-      <description>Message that announces that a certain item of the inspection tasks has been reached.</description>
+    <message id="187" name="WAYPOINT_LIST_ITEM_REACHED">
+      <description>Message that announces that a certain item of the waypoint list has been reached.</description>
       <field type="uint16_t" name="seq">Waypoint ID (sequence number). Starts at zero</field>
     </message>
 

@@ -13,15 +13,15 @@ Inspection::Inspection(std::shared_ptr<System> system) :
 Inspection::~Inspection() {}
 
 void Inspection::upload_inspection_async(
-    InspectionBase::InspectionPlan inspection_plan, const InspectionBase::ResultAckCallback callback)
+    InspectionBase::WaypointList list, const InspectionBase::ResultAckCallback callback)
 {
-    _impl->upload_inspection_async(inspection_plan, callback);
+    _impl->upload_inspection_async(list, callback);
 }
 
 std::pair<InspectionBase::Result, InspectionBase::Ack>
-Inspection::upload_inspection(InspectionBase::InspectionPlan inspection_plan) const
+Inspection::upload_inspection(InspectionBase::WaypointList list) const
 {
-    return _impl->upload_inspection(inspection_plan);
+    return _impl->upload_inspection(list);
 }
 
 InspectionBase::Result Inspection::cancel_inspection_upload() const
@@ -35,7 +35,7 @@ void Inspection::download_inspection_async(
     _impl->download_inspection_async(callback);
 }
 
-std::pair<InspectionBase::Result, InspectionBase::InspectionPlan>
+std::pair<InspectionBase::Result, InspectionBase::WaypointList>
 Inspection::download_inspection() const
 {
     return _impl->download_inspection();
