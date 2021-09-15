@@ -7,7 +7,7 @@ namespace mavsdk {
 bool operator==(const HLActionBase::HLActionItem& lhs, const HLActionBase::HLActionItem& rhs)
 {
     return (
-        ((std::isnan(rhs.index) && std::isnan(lhs.index)) || (rhs.index == lhs.index)) &&
+        ((rhs.index == lhs.index)) &&
         (rhs.name == lhs.name) && (rhs.description == lhs.description));
 }
 
