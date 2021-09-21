@@ -7,6 +7,7 @@ if (WERROR)
     add_compile_options(-Werror)
 endif()
 
+add_subdirectory(piloting_heartbeat)
 add_subdirectory(piloting_inspection)
 add_subdirectory(piloting_telemetry)
 add_subdirectory(piloting_command)
