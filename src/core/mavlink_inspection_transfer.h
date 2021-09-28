@@ -67,11 +67,12 @@ public:
     };
 
     struct WaypointList {
+        uint32_t plan_id;
         std::vector<WaypointItem> items{};
 
         bool operator==(const WaypointList& other) const
         {
-            return items == other.items;
+            return plan_id == other.plan_id && items == other.items;
         }
     };
 

@@ -109,6 +109,7 @@ void MAVLinkInspectionTransferGroundStation::UploadWorkItem::send_count()
         &message,
         _sender.target_address.system_id,
         _sender.target_address.component_id,
+        _list.plan_id,
         _list.items.size());
 
     if (!_sender.send_message(message)) {
@@ -117,7 +118,8 @@ void MAVLinkInspectionTransferGroundStation::UploadWorkItem::send_count()
         return;
     }
 
-    LogDebug() << "Waypoint list count sent: " << _list.items.size();
+    LogDebug() << "Waypoint list count sent: "
+               << _list.plan_id << " " << _list.items.size();
 
     ++_retries_done;
 }
@@ -349,6 +351,7 @@ void MAVLinkInspectionTransferGroundStation::DownloadWorkItem::start()
 {
     std::lock_guard<std::mutex> lock(_mutex);
 
+    _list.plan_id = 0;
     _list.items.clear();
     _started = true;
     _retries_done = 0;
@@ -463,6 +466,7 @@ void MAVLinkInspectionTransferGroundStation::DownloadWorkItem::process_inspectio
     _step = Step::RequestItem;
     _retries_done = 0;
     _expected_count = count.count;
+    _list.plan_id = count.plan_id;
     request_item();
 }
 

@@ -122,6 +122,7 @@ void InspectionImpl::upload_inspection_async(
     reset_inspection_progress();
 
     MAVLinkInspectionTransfer::WaypointList wp_list;
+    wp_list.plan_id = list.plan_id;
     wp_list.items = convert_to_int_items(list.items);
 
     auto inspection_transfer = std::dynamic_pointer_cast<MAVLinkInspectionTransferGroundStation>(
@@ -133,7 +134,7 @@ void InspectionImpl::upload_inspection_async(
 
     _inspection_data.last_upload = inspection_transfer->upload_items_async(
         wp_list,
-        [this, list, callback](
+        [this, callback](
             MAVLinkInspectionTransfer::Result result, MAVLinkInspectionTransfer::Ack ack) {
             auto result_and_ack = convert_to_result_and_ack(result, ack);
             _parent->call_user_callback([callback, result_and_ack]() {
@@ -252,6 +253,8 @@ InspectionImpl::convert_to_result_and_waypoint_list(
     //        result_pair.first = InspectionBase::Result::NoInspectionAvailable;
     //        return result_pair;
     //    }
+
+    result_pair.second.plan_id = list.plan_id;
 
     InspectionBase::WaypointItem new_item{};
     for (const auto& int_item : list.items) {

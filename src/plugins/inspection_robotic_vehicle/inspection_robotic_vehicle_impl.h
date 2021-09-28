@@ -39,7 +39,7 @@ public:
 
 private:
     void upload_inspection();
-    void download_inspection(const uint16_t count);
+    void download_inspection(const uint32_t plan_id, const uint16_t count);
     void process_inspection_set_current(const mavlink_message_t& message);
 
     std::vector<MAVLinkInspectionTransfer::WaypointItem>

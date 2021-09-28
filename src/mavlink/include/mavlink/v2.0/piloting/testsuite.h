@@ -37,10 +37,11 @@ static void mavlink_test_waypoint_list_count(uint8_t system_id, uint8_t componen
         uint8_t buffer[MAVLINK_MAX_PACKET_LEN];
         uint16_t i;
     mavlink_waypoint_list_count_t packet_in = {
-        17235,139,206
+        963497464,17443,151,218
     };
     mavlink_waypoint_list_count_t packet1, packet2;
         memset(&packet1, 0, sizeof(packet1));
+        packet1.plan_id = packet_in.plan_id;
         packet1.count = packet_in.count;
         packet1.target_system = packet_in.target_system;
         packet1.target_component = packet_in.target_component;
@@ -58,12 +59,12 @@ static void mavlink_test_waypoint_list_count(uint8_t system_id, uint8_t componen
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
 
         memset(&packet2, 0, sizeof(packet2));
-    mavlink_msg_waypoint_list_count_pack(system_id, component_id, &msg , packet1.target_system , packet1.target_component , packet1.count );
+    mavlink_msg_waypoint_list_count_pack(system_id, component_id, &msg , packet1.target_system , packet1.target_component , packet1.plan_id , packet1.count );
     mavlink_msg_waypoint_list_count_decode(&msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
 
         memset(&packet2, 0, sizeof(packet2));
-    mavlink_msg_waypoint_list_count_pack_chan(system_id, component_id, MAVLINK_COMM_0, &msg , packet1.target_system , packet1.target_component , packet1.count );
+    mavlink_msg_waypoint_list_count_pack_chan(system_id, component_id, MAVLINK_COMM_0, &msg , packet1.target_system , packet1.target_component , packet1.plan_id , packet1.count );
     mavlink_msg_waypoint_list_count_decode(&msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
 
@@ -76,7 +77,7 @@ static void mavlink_test_waypoint_list_count(uint8_t system_id, uint8_t componen
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
         
         memset(&packet2, 0, sizeof(packet2));
-    mavlink_msg_waypoint_list_count_send(MAVLINK_COMM_1 , packet1.target_system , packet1.target_component , packet1.count );
+    mavlink_msg_waypoint_list_count_send(MAVLINK_COMM_1 , packet1.target_system , packet1.target_component , packet1.plan_id , packet1.count );
     mavlink_msg_waypoint_list_count_decode(last_msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <mavlink>
   <include>common.xml</include>
-  <version>3</version>
+  <version>4</version>
   <enums>
     <!-- PILOTING specific MAV_CMD_* commands -->
     <enum name="MAV_CMD">
@@ -160,6 +160,7 @@
       <description>Send the number of items in the waypoint list. This is used to initiate a waypoint list upload or as a response to an WAYPOINT_LIST_REQUEST message when downloading the waypoint list.</description>
       <field type="uint8_t" name="target_system">System ID</field>
       <field type="uint8_t" name="target_component">Component ID</field>
+      <field type="uint32_t" name="plan_id">Identifier of the associated inspection plan</field>
       <field type="uint16_t" name="count">Number of waypoint items in the sequence</field>
     </message>
     <message id="181" name="WAYPOINT_LIST_READ">

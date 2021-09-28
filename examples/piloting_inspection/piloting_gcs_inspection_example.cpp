@@ -76,6 +76,7 @@ int main(int, char**)
         waypoint_items.push_back(make_waypoint_item(
             12347, MAV_CMD_NAV_WAYPOINT, 1, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f, 8.8f, 9.9f));
         InspectionBase::WaypointList waypoint_list{};
+        waypoint_list.plan_id = 987654321;
         waypoint_list.items = waypoint_items;
         std::cout << RESULT_CONSOLE_TEXT << waypoint_list << NORMAL_CONSOLE_TEXT << std::endl;
 

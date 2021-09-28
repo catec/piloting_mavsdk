@@ -63,6 +63,7 @@ public:
      * @brief Waypoint list
      */
     struct WaypointList {
+        uint32_t plan_id{0};
         std::vector<WaypointItem> items{}; /**< @brief The waypoint items */
     };
 

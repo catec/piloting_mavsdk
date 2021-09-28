@@ -48,7 +48,8 @@ std::ostream& operator<<(std::ostream& str, InspectionBase::WaypointItem const& 
 bool operator==(
     const InspectionBase::WaypointList& lhs, const InspectionBase::WaypointList& rhs)
 {
-    return rhs.items == lhs.items;
+    return rhs.plan_id == lhs.plan_id &&
+           rhs.items == lhs.items;
 }
 
 std::ostream& operator<<(std::ostream& str, InspectionBase::WaypointList const& list)
@@ -56,6 +57,7 @@ std::ostream& operator<<(std::ostream& str, InspectionBase::WaypointList const& 
     str << std::setprecision(15);
     str << "waypoint_list:\n";
     str << "{\n";
+    str << "    plan_id: " << list.plan_id << '\n';
     str << "    items: [";
     if (list.items.size() == 0) {
         str << "]\n";
