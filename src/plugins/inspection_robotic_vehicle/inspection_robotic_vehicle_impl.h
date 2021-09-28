@@ -27,6 +27,7 @@ public:
     InspectionBase::Result cancel_inspection_upload();
 
     void download_inspection_async(InspectionBase::DownloadInspectionCallback callback);
+    InspectionBase::Result send_download_ack(const InspectionBase::Ack& ack);
     InspectionBase::Result cancel_inspection_download();
 
     void inspection_set_current_async(InspectionBase::InspectionSetCurrentCallback callback);

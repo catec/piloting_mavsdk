@@ -327,7 +327,7 @@ void MAVLinkInspectionTransferRoboticVehicle::DownloadWorkItem::start()
         this);
 
     if (_expected_count == 0) {
-        send_ack_and_finish();
+        callback_and_reset(Result::Success);
         return;
     }
 
@@ -366,26 +366,6 @@ void MAVLinkInspectionTransferRoboticVehicle::DownloadWorkItem::request_item()
     }
 
     ++_retries_done;
-}
-
-void MAVLinkInspectionTransferRoboticVehicle::DownloadWorkItem::send_ack_and_finish()
-{
-    mavlink_message_t message;
-    mavlink_msg_waypoint_list_ack_pack(
-        _sender.own_address.system_id,
-        _sender.own_address.component_id,
-        &message,
-        _sender.target_address.system_id,
-        _sender.target_address.component_id,
-        WAYPOINT_LIST_ACCEPTED);
-
-    if (!_sender.send_message(message)) {
-        callback_and_reset(Result::ConnectionError);
-        return;
-    }
-
-    // We do not wait on anything coming back after this.
-    callback_and_reset(Result::Success);
 }
 
 void MAVLinkInspectionTransferRoboticVehicle::DownloadWorkItem::send_cancel_and_finish()
@@ -432,7 +412,7 @@ void MAVLinkInspectionTransferRoboticVehicle::DownloadWorkItem::process_inspecti
 
     if (_next_sequence + 1 == _expected_count) {
         _timeout_handler.remove(_cookie);
-        send_ack_and_finish();
+        callback_and_reset(Result::Success);
 
     } else {
         _next_sequence = waypoint_list_item.seq + 1;

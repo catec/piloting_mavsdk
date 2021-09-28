@@ -182,6 +182,29 @@ void InspectionRoboticVehicleImpl::download_inspection(
         });
 }
 
+InspectionBase::Result InspectionRoboticVehicleImpl::send_download_ack(
+    const InspectionBase::Ack& ack)
+{
+    mavlink_message_t message;
+    mavlink_msg_waypoint_list_ack_pack(
+       _parent->get_own_system_id(),
+       _parent->get_own_component_id(),
+       &message,
+       _parent->get_target_system_id(),
+       _parent->get_target_component_id(),
+       static_cast<uint8_t>(ack));
+
+    if (!_parent->send_message(message))
+    {
+        LogErr() << "Connection send error with ack (" << ack << ")";
+        return InspectionBase::Result::ConnectionError;
+    }
+
+    LogDebug() << "Waypoint list ask sent: " << ack;
+
+    return InspectionBase::Result::Success;
+}
+
 InspectionBase::Result InspectionRoboticVehicleImpl::cancel_inspection_download()
 {
     auto ptr = _inspection_data.last_download.lock();

@@ -68,6 +68,9 @@ int main(int, char**)
             std::cout << RESULT_CONSOLE_TEXT << waypoint_list << NORMAL_CONSOLE_TEXT << std::endl;
 
             if (result == InspectionBase::Result::Success) {
+                std::cout << "Sending inspection download ACK..." << std::endl;
+                inspection_rv.send_download_ack(InspectionBase::Ack::Accepted);
+
                 std::lock_guard<std::mutex> lock(local_waypoint_list_mutex);
                 local_waypoint_list = waypoint_list;
             }

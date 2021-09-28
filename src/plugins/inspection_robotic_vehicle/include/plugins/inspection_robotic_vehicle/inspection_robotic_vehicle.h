@@ -82,6 +82,15 @@ public:
     void download_inspection_async(InspectionBase::DownloadInspectionCallback callback);
 
     /**
+     * @brief Send ack for a download sequence.
+     *
+     * This function is blocking.
+     *
+     * @return Result of request.
+     */
+    InspectionBase::Result send_download_ack(const InspectionBase::Ack& ack);
+
+    /**
      * @brief Cancel an ongoing inspection download.
      *
      * This function is blocking.

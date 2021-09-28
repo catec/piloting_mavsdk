@@ -37,6 +37,12 @@ void InspectionRoboticVehicle::download_inspection_async(
     _impl->download_inspection_async(callback);
 }
 
+InspectionBase::Result InspectionRoboticVehicle::send_download_ack(
+    const InspectionBase::Ack& ack)
+{
+    return _impl->send_download_ack(ack);
+}
+
 InspectionBase::Result InspectionRoboticVehicle::cancel_inspection_download() const
 {
     return _impl->cancel_inspection_download();

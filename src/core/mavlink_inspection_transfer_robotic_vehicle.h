@@ -79,7 +79,6 @@ public:
 
     private:
         void request_item();
-        void send_ack_and_finish();
         void send_cancel_and_finish();
         void process_inspection_item_int(const mavlink_message_t& message);
         void process_timeout();
