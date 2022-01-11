@@ -181,6 +181,7 @@
       <field type="uint8_t" name="target_system">System ID</field>
       <field type="uint8_t" name="target_component">Component ID</field>
       <field type="uint32_t" name="plan_id">Identifier of the associated inspection plan</field>
+      <field type="uint32_t" name="sync_id">Identifier of the synchronization token for gRCS and mRCS mission results mergering</field>
       <field type="uint16_t" name="count">Number of waypoint items in the sequence</field>
     </message>
     <message id="181" name="WAYPOINT_LIST_READ">

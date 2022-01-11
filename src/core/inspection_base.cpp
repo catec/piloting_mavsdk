@@ -49,6 +49,7 @@ bool operator==(
     const InspectionBase::WaypointList& lhs, const InspectionBase::WaypointList& rhs)
 {
     return rhs.plan_id == lhs.plan_id &&
+           rhs.sync_id == lhs.sync_id &&
            rhs.items == lhs.items;
 }
 
@@ -58,6 +59,7 @@ std::ostream& operator<<(std::ostream& str, InspectionBase::WaypointList const& 
     str << "waypoint_list:\n";
     str << "{\n";
     str << "    plan_id: " << list.plan_id << '\n';
+    str << "    sync_id: " << list.sync_id << '\n';
     str << "    items: [";
     if (list.items.size() == 0) {
         str << "]\n";

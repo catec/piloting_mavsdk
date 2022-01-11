@@ -123,6 +123,7 @@ void InspectionImpl::upload_inspection_async(
 
     MAVLinkInspectionTransfer::WaypointList wp_list;
     wp_list.plan_id = list.plan_id;
+    wp_list.sync_id = list.sync_id;
     wp_list.items = convert_to_int_items(list.items);
 
     auto inspection_transfer = std::dynamic_pointer_cast<MAVLinkInspectionTransferGroundStation>(
@@ -255,6 +256,7 @@ InspectionImpl::convert_to_result_and_waypoint_list(
     //    }
 
     result_pair.second.plan_id = list.plan_id;
+    result_pair.second.sync_id = list.sync_id;
 
     InspectionBase::WaypointItem new_item{};
     for (const auto& int_item : list.items) {

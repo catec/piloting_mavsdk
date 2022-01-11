@@ -64,6 +64,7 @@ public:
      */
     struct WaypointList {
         uint32_t plan_id{0};
+        uint32_t sync_id{0};
         std::vector<WaypointItem> items{}; /**< @brief The waypoint items */
     };
 

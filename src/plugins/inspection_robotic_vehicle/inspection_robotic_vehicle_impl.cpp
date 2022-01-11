@@ -31,7 +31,7 @@ void InspectionRoboticVehicleImpl::init()
             LogDebug() << "Waypoint list count message received!";
             mavlink_waypoint_list_count_t count;
             mavlink_msg_waypoint_list_count_decode(&message, &count);
-            download_inspection(count.plan_id, count.count);
+            download_inspection(count.plan_id, count.sync_id, count.count);
         },
         this);
 
@@ -97,6 +97,7 @@ void InspectionRoboticVehicleImpl::upload_inspection()
 
     MAVLinkInspectionTransfer::WaypointList list;
     list.plan_id = _inspection_data.list.plan_id;
+    list.sync_id = _inspection_data.list.sync_id;
     list.items = convert_to_int_items(_inspection_data.list.items);
 
     LogDebug() << "Convert to int items done";
@@ -141,7 +142,7 @@ void InspectionRoboticVehicleImpl::download_inspection_async(
 }
 
 void InspectionRoboticVehicleImpl::download_inspection(
-   const uint32_t plan_id, const uint16_t count)
+   const uint32_t plan_id, const uint32_t sync_id, const uint16_t count)
 {
     std::lock_guard<std::recursive_mutex> lock(_inspection_data.mutex);
 
@@ -168,9 +169,10 @@ void InspectionRoboticVehicleImpl::download_inspection(
 
     _inspection_data.last_download = inspection_transfer->download_items_async(
         count,
-        [this, plan_id](
+        [this, plan_id, sync_id](
             MAVLinkInspectionTransfer::Result result, MAVLinkInspectionTransfer::WaypointList list) {
             list.plan_id = plan_id;
+            list.sync_id = sync_id;
             auto result_and_list = convert_to_result_and_waypoint_list(result, list);
             std::lock_guard<std::recursive_mutex> lock_cb(_inspection_data.mutex);
             if (_inspection_data.download_callback) {
@@ -303,6 +305,7 @@ InspectionRoboticVehicleImpl::convert_to_result_and_waypoint_list(
     }
 
     result_pair.second.plan_id = list.plan_id;
+    result_pair.second.sync_id = list.sync_id;
 
     InspectionBase::WaypointItem new_item{};
     for (const auto& int_item : list.items) {

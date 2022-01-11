@@ -110,6 +110,7 @@ void MAVLinkInspectionTransferRoboticVehicle::UploadWorkItem::send_count()
         _sender.target_address.system_id,
         _sender.target_address.component_id,
         _list.plan_id,
+        _list.sync_id,
         _list.items.size());
 
     if (!_sender.send_message(message)) {
