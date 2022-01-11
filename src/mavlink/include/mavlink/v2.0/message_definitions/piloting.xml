@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <mavlink>
   <include>common.xml</include>
-  <version>4</version>
+  <version>5</version>
   <enums>
     <!-- PILOTING specific MAV_CMD_* commands -->
     <enum name="MAV_CMD">
@@ -24,6 +24,26 @@
         <param index="5" label="Position X" units="m">Position component x</param>
         <param index="6" label="Position Y" units="m">Position component y</param>
         <param index="7" label="Position Z" units="m">Position component z</param>
+      </entry>
+      <entry value="42002" name="MAV_CMD_NAV_INSP_POINT_QUATERNION">
+        <description>Inspect a specific point in the 3D Space.</description>
+        <param index="1" label="Quaternion W">Quaternion component w (1 in null-rotation)</param>
+        <param index="2" label="Quaternion X">Quaternion component x (0 in null-rotation)</param>
+        <param index="3" label="Quaternion Y">Quaternion component y (0 in null-rotation)</param>
+        <param index="4" label="Quaternion Z">Quaternion component z (0 in null-rotation)</param>
+        <param index="5" label="Position X" units="m">Position component x</param>
+        <param index="6" label="Position Y" units="m">Position component y</param>
+        <param index="7" label="Position Z" units="m">Position component z</param>
+      </entry>
+      <entry value="42003" name="MAV_CMD_NAV_INSP_AREA_QUATERNION">
+         <description>Inspect an area in the 3D Space. Area defined with 4 consecutive commands.</description>
+         <param index="1" label="Quaternion W">Quaternion component w (1 in null-rotation)</param>
+         <param index="2" label="Quaternion X">Quaternion component x (0 in null-rotation)</param>
+         <param index="3" label="Quaternion Y">Quaternion component y (0 in null-rotation)</param>
+         <param index="4" label="Quaternion Z">Quaternion component z (0 in null-rotation)</param>
+         <param index="5" label="Position X" units="m">Position component x</param>
+         <param index="6" label="Position Y" units="m">Position component y</param>
+         <param index="7" label="Position Z" units="m">Position component z</param>
       </entry>
     </enum>
     <enum name="WAYPOINT_LIST_RESULT">
