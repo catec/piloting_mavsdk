@@ -31,7 +31,7 @@ public:
      * They cannot be used independently.
      */
     struct WaypointItem {
-        uint32_t task_id{0};
+        std::string task_uuid{""};
         uint16_t command{0};
         uint8_t autocontinue{0};
         float param1{0};
@@ -63,7 +63,7 @@ public:
      * @brief Waypoint list
      */
     struct WaypointList {
-        uint32_t plan_id{0};
+        std::string plan_uuid{""};
         uint32_t sync_id{0};
         std::vector<WaypointItem> items{}; /**< @brief The waypoint items */
     };

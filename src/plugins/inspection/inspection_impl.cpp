@@ -122,7 +122,7 @@ void InspectionImpl::upload_inspection_async(
     reset_inspection_progress();
 
     MAVLinkInspectionTransfer::WaypointList wp_list;
-    wp_list.plan_id = list.plan_id;
+    wp_list.plan_uuid = list.plan_uuid;
     wp_list.sync_id = list.sync_id;
     wp_list.items = convert_to_int_items(list.items);
 
@@ -222,7 +222,7 @@ InspectionImpl::convert_to_int_items(const std::vector<InspectionBase::WaypointI
     for (const auto& item : items) {
         MAVLinkInspectionTransfer::WaypointItem next_item{
             static_cast<uint16_t>(int_items.size()),
-            item.task_id,
+            item.task_uuid,
             item.command,
             item.autocontinue,
             item.param1,
@@ -255,14 +255,14 @@ InspectionImpl::convert_to_result_and_waypoint_list(
     //        return result_pair;
     //    }
 
-    result_pair.second.plan_id = list.plan_id;
+    result_pair.second.plan_uuid = list.plan_uuid;
     result_pair.second.sync_id = list.sync_id;
 
     InspectionBase::WaypointItem new_item{};
     for (const auto& int_item : list.items) {
         LogDebug() << "Assembling Message: " << int(int_item.seq);
 
-        new_item.task_id      = int_item.task_id;
+        new_item.task_uuid    = int_item.task_uuid;
         new_item.command      = int_item.command;
         new_item.autocontinue = int_item.autocontinue;
         new_item.param1       = int_item.param1;

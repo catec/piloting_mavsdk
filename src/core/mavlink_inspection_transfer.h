@@ -45,7 +45,7 @@ public:
 
     struct WaypointItem {
         uint16_t seq;
-        uint32_t task_id;
+        std::string task_uuid;
         uint16_t command;
         uint8_t autocontinue;
         float param1;
@@ -59,7 +59,7 @@ public:
         bool operator==(const WaypointItem& other) const
         {
             return (
-                seq == other.seq && task_id == other.task_id && command == other.command &&
+                seq == other.seq && task_uuid == other.task_uuid && command == other.command &&
                 autocontinue == other.autocontinue && param1 == other.param1 &&
                 param2 == other.param2 && param3 == other.param3 && param4 == other.param4 &&
                 x == other.x && y == other.y && z == other.z);
@@ -67,13 +67,13 @@ public:
     };
 
     struct WaypointList {
-        uint32_t plan_id;
+        std::string plan_uuid;
         uint32_t sync_id;
         std::vector<WaypointItem> items{};
 
         bool operator==(const WaypointList& other) const
         {
-            return plan_id == other.plan_id && sync_id == other.sync_id && items == other.items;
+            return plan_uuid == other.plan_uuid && sync_id == other.sync_id && items == other.items;
         }
     };
 

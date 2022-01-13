@@ -16,7 +16,7 @@ using namespace std::chrono;
 #define NORMAL_CONSOLE_TEXT "\033[0m" // Restore normal console colour
 
 static InspectionBase::WaypointItem make_waypoint_item(
-    uint32_t task_id,
+    std::string task_uuid,
     uint16_t command,
     uint8_t autocontinue,
     float param1,
@@ -70,13 +70,13 @@ int main(int, char**)
         std::cout << "Creating inspection to be sent..." << std::endl;
         std::vector<InspectionBase::WaypointItem> waypoint_items;
         waypoint_items.push_back(make_waypoint_item(
-            12345, MAV_CMD_NAV_WAYPOINT, 1, 1.1f, 2.2f, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f));
+            "204d19ef-7e77-4804-a1ff-5602bbac60e5", MAV_CMD_NAV_WAYPOINT, 1, 1.1f, 2.2f, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f));
         waypoint_items.push_back(make_waypoint_item(
-            12346, MAV_CMD_NAV_WAYPOINT, 1, 2.2f, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f, 8.8f));
+            "895e355b-99c4-4389-9273-d20eff6a6cc9", MAV_CMD_NAV_WAYPOINT, 1, 2.2f, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f, 8.8f));
         waypoint_items.push_back(make_waypoint_item(
-            12347, MAV_CMD_NAV_WAYPOINT, 1, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f, 8.8f, 9.9f));
+            "98a1161c-5f77-426a-b1f4-dfefee1d2257", MAV_CMD_NAV_WAYPOINT, 1, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f, 8.8f, 9.9f));
         InspectionBase::WaypointList waypoint_list{};
-        waypoint_list.plan_id = 987654321;
+        waypoint_list.plan_uuid = "79043d91-080a-4807-8073-d28f6b869b8a";
         waypoint_list.sync_id = 45131267;
         waypoint_list.items = waypoint_items;
         std::cout << RESULT_CONSOLE_TEXT << waypoint_list << NORMAL_CONSOLE_TEXT << std::endl;
@@ -133,7 +133,7 @@ int main(int, char**)
 }
 
 InspectionBase::WaypointItem make_waypoint_item(
-    uint32_t task_id,
+    std::string task_uuid,
     uint16_t command,
     uint8_t autocontinue,
     float param1,
@@ -145,7 +145,7 @@ InspectionBase::WaypointItem make_waypoint_item(
     float z)
 {
     InspectionBase::WaypointItem new_item{};
-    new_item.task_id = task_id;
+    new_item.task_uuid = task_uuid;
     new_item.command = command;
     new_item.autocontinue = autocontinue;
     new_item.param1 = param1;

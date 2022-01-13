@@ -109,7 +109,7 @@ void MAVLinkInspectionTransferGroundStation::UploadWorkItem::send_count()
         &message,
         _sender.target_address.system_id,
         _sender.target_address.component_id,
-        _list.plan_id,
+        _list.plan_uuid.c_str(),
         _list.sync_id,
         _list.items.size());
 
@@ -120,7 +120,7 @@ void MAVLinkInspectionTransferGroundStation::UploadWorkItem::send_count()
     }
 
     LogDebug() << "Waypoint list count sent: "
-               << _list.plan_id << " " << _list.items.size();
+               << _list.plan_uuid << " " << _list.items.size();
 
     ++_retries_done;
 }
@@ -197,7 +197,7 @@ void MAVLinkInspectionTransferGroundStation::UploadWorkItem::send_inspection_ite
         _sender.target_address.system_id,
         _sender.target_address.component_id,
         _next_sequence,
-        item.task_id,
+        item.task_uuid.c_str(),
         item.command,
         item.autocontinue,
         item.param1,
@@ -352,7 +352,7 @@ void MAVLinkInspectionTransferGroundStation::DownloadWorkItem::start()
 {
     std::lock_guard<std::mutex> lock(_mutex);
 
-    _list.plan_id = 0;
+    _list.plan_uuid = "";
     _list.sync_id = 0;
     _list.items.clear();
     _started = true;
@@ -468,7 +468,7 @@ void MAVLinkInspectionTransferGroundStation::DownloadWorkItem::process_inspectio
     _step = Step::RequestItem;
     _retries_done = 0;
     _expected_count = count.count;
-    _list.plan_id = count.plan_id;
+    _list.plan_uuid = count.plan_uuid;
     _list.sync_id = count.sync_id;
     request_item();
 }
@@ -484,7 +484,7 @@ void MAVLinkInspectionTransferGroundStation::DownloadWorkItem::process_inspectio
     mavlink_msg_waypoint_list_item_decode(&message, &waypoint_list_item);
 
     _list.items.push_back(WaypointItem{waypoint_list_item.seq,
-                                       waypoint_list_item.task_id,
+                                       waypoint_list_item.task_uuid,
                                        waypoint_list_item.command,
                                        waypoint_list_item.autocontinue,
                                        waypoint_list_item.param1,

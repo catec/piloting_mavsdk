@@ -109,7 +109,7 @@ void MAVLinkInspectionTransferRoboticVehicle::UploadWorkItem::send_count()
         &message,
         _sender.target_address.system_id,
         _sender.target_address.component_id,
-        _list.plan_id,
+        _list.plan_uuid.c_str(),
         _list.sync_id,
         _list.items.size());
 
@@ -194,7 +194,7 @@ void MAVLinkInspectionTransferRoboticVehicle::UploadWorkItem::send_inspection_it
         _sender.target_address.system_id,
         _sender.target_address.component_id,
         _next_sequence,
-        item.task_id,
+        item.task_uuid.c_str(),
         item.command,
         item.autocontinue,
         item.param1,
@@ -400,7 +400,7 @@ void MAVLinkInspectionTransferRoboticVehicle::DownloadWorkItem::process_inspecti
     mavlink_msg_waypoint_list_item_decode(&message, &waypoint_list_item);
 
     _list.items.push_back(WaypointItem{waypoint_list_item.seq,
-                                       waypoint_list_item.task_id,
+                                       waypoint_list_item.task_uuid,
                                        waypoint_list_item.command,
                                        waypoint_list_item.autocontinue,
                                        waypoint_list_item.param1,

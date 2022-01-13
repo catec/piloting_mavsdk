@@ -7,7 +7,7 @@ namespace mavsdk {
 bool operator==(
     const InspectionBase::WaypointItem& lhs, const InspectionBase::WaypointItem& rhs)
 {
-    return (rhs.task_id == lhs.task_id) &&
+    return (rhs.task_uuid == lhs.task_uuid) &&
            (rhs.command == lhs.command) &&
            (rhs.autocontinue == lhs.autocontinue) &&
            ((std::isnan(rhs.param1) && std::isnan(lhs.param1)) ||
@@ -31,7 +31,7 @@ std::ostream& operator<<(std::ostream& str, InspectionBase::WaypointItem const& 
     str << std::setprecision(15);
     str << "waypoint_item:\n";
     str << "{\n";
-    str << "    task_id: " << item.task_id << '\n';
+    str << "    task_uuid: " << item.task_uuid << '\n';
     str << "    command: " << item.command << '\n';
     str << "    autocontinue: " << unsigned(item.autocontinue) << '\n';
     str << "    param1: " << item.param1 << '\n';
@@ -48,7 +48,7 @@ std::ostream& operator<<(std::ostream& str, InspectionBase::WaypointItem const& 
 bool operator==(
     const InspectionBase::WaypointList& lhs, const InspectionBase::WaypointList& rhs)
 {
-    return rhs.plan_id == lhs.plan_id &&
+    return rhs.plan_uuid == lhs.plan_uuid &&
            rhs.sync_id == lhs.sync_id &&
            rhs.items == lhs.items;
 }
@@ -58,7 +58,7 @@ std::ostream& operator<<(std::ostream& str, InspectionBase::WaypointList const& 
     str << std::setprecision(15);
     str << "waypoint_list:\n";
     str << "{\n";
-    str << "    plan_id: " << list.plan_id << '\n';
+    str << "    plan_uuid: " << list.plan_uuid << '\n';
     str << "    sync_id: " << list.sync_id << '\n';
     str << "    items: [";
     if (list.items.size() == 0) {

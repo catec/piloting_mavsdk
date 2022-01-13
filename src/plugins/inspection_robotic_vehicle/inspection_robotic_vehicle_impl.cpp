@@ -31,7 +31,7 @@ void InspectionRoboticVehicleImpl::init()
             LogDebug() << "Waypoint list count message received!";
             mavlink_waypoint_list_count_t count;
             mavlink_msg_waypoint_list_count_decode(&message, &count);
-            download_inspection(count.plan_id, count.sync_id, count.count);
+            download_inspection(count.plan_uuid, count.sync_id, count.count);
         },
         this);
 
@@ -96,7 +96,7 @@ void InspectionRoboticVehicleImpl::upload_inspection()
     }
 
     MAVLinkInspectionTransfer::WaypointList list;
-    list.plan_id = _inspection_data.list.plan_id;
+    list.plan_uuid = _inspection_data.list.plan_uuid;
     list.sync_id = _inspection_data.list.sync_id;
     list.items = convert_to_int_items(_inspection_data.list.items);
 
@@ -142,7 +142,7 @@ void InspectionRoboticVehicleImpl::download_inspection_async(
 }
 
 void InspectionRoboticVehicleImpl::download_inspection(
-   const uint32_t plan_id, const uint32_t sync_id, const uint16_t count)
+   const std::string& plan_uuid, const uint32_t sync_id, const uint16_t count)
 {
     std::lock_guard<std::recursive_mutex> lock(_inspection_data.mutex);
 
@@ -169,9 +169,9 @@ void InspectionRoboticVehicleImpl::download_inspection(
 
     _inspection_data.last_download = inspection_transfer->download_items_async(
         count,
-        [this, plan_id, sync_id](
+        [this, plan_uuid, sync_id](
             MAVLinkInspectionTransfer::Result result, MAVLinkInspectionTransfer::WaypointList list) {
-            list.plan_id = plan_id;
+            list.plan_uuid = plan_uuid;
             list.sync_id = sync_id;
             auto result_and_list = convert_to_result_and_waypoint_list(result, list);
             std::lock_guard<std::recursive_mutex> lock_cb(_inspection_data.mutex);
@@ -277,7 +277,7 @@ InspectionRoboticVehicleImpl::convert_to_int_items(
     for (const auto& item : items) {
         MAVLinkInspectionTransfer::WaypointItem next_item{
             static_cast<uint16_t>(int_items.size()),
-            item.task_id,
+            item.task_uuid,
             item.command,
             item.autocontinue,
             item.param1,
@@ -304,14 +304,14 @@ InspectionRoboticVehicleImpl::convert_to_result_and_waypoint_list(
         return result_pair;
     }
 
-    result_pair.second.plan_id = list.plan_id;
+    result_pair.second.plan_uuid = list.plan_uuid;
     result_pair.second.sync_id = list.sync_id;
 
     InspectionBase::WaypointItem new_item{};
     for (const auto& int_item : list.items) {
         LogDebug() << "Assembling Message: " << int(int_item.seq);
 
-        new_item.task_id      = int_item.task_id;
+        new_item.task_uuid      = int_item.task_uuid;
         new_item.command      = int_item.command;
         new_item.autocontinue = int_item.autocontinue;
         new_item.param1       = int_item.param1;
