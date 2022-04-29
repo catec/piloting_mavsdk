@@ -202,8 +202,8 @@ typedef enum MAV_CMD
    MAV_CMD_USER_5=31014, /* User defined command. Ground Station will not show the Vehicle as flying through this item. Example: MAV_CMD_DO_SET_PARAMETER item. |User defined| User defined| User defined| User defined| User defined| User defined| User defined|  */
    MAV_CMD_NAV_WAYPOINT_QUATERNION=42000, /* Navigate to waypoint. |Quaternion component w (1 in null-rotation)| Quaternion component x (0 in null-rotation)| Quaternion component y (0 in null-rotation)| Quaternion component z (0 in null-rotation)| Position component x| Position component y| Position component z|  */
    MAV_CMD_DO_SET_HOME_QUATERNION=42001, /* Changes the home location either to a specified location. |Quaternion component w (1 in null-rotation)| Quaternion component x (0 in null-rotation)| Quaternion component y (0 in null-rotation)| Quaternion component z (0 in null-rotation)| Position component x| Position component y| Position component z|  */
-   MAV_CMD_NAV_INSP_POINT_QUATERNION=42002, /* Inspect a specific point in the 3D Space. |Quaternion component w (1 in null-rotation)| Quaternion component x (0 in null-rotation)| Quaternion component y (0 in null-rotation)| Quaternion component z (0 in null-rotation)| Position component x| Position component y| Position component z|  */
-   MAV_CMD_NAV_INSP_AREA_QUATERNION=42003, /* Inspect an area in the 3D Space. Area defined with 4 consecutive commands. |Quaternion component w (1 in null-rotation)| Quaternion component x (0 in null-rotation)| Quaternion component y (0 in null-rotation)| Quaternion component z (0 in null-rotation)| Position component x| Position component y| Position component z|  */
+   MAV_CMD_NAV_INSP_POINT=42002, /* Inspect a specific point in the 3D Space. |Type of inspection to be performed (see INSPECTION_TYPE_FLAGS enum)| Reserved| Reserved| Reserved| Position component x| Position component y| Position component z|  */
+   MAV_CMD_NAV_INSP_AREA=42003, /* Inspect an area in the 3D Space. Area defined with 4 consecutive commands. |Type of inspection to be performed (see INSPECTION_TYPE_FLAGS enum)| Reserved| Reserved| Reserved| Position component x| Position component y| Position component z|  */
    MAV_CMD_FIXED_MAG_CAL_YAW=42006, /* Magnetometer calibration based on provided known yaw. This allows for fast calibration using WMM field tables in the vehicle, given only the known yaw of the vehicle. If Latitude and longitude are both zero then use the current vehicle location. |Yaw of vehicle in earth frame.| CompassMask, 0 for all.| Latitude.| Longitude.| Empty.| Empty.| Empty.|  */
    MAV_CMD_DO_WINCH=42600, /* Command to operate winch. |Winch instance number.| Action to perform.| Length of cable to release (negative to wind).| Release rate (negative to wind).| Empty.| Empty.| Empty.|  */
    MAV_CMD_ENUM_END=42601, /*  | */
@@ -297,6 +297,17 @@ typedef enum TEXT_STATUS_FLAGS
    TEXT_STATUS_INFO=2, /* Normal operational messages. Useful for logging. No action is required for these messages. | */
    TEXT_STATUS_FLAGS_ENUM_END=3, /*  | */
 } TEXT_STATUS_FLAGS;
+#endif
+
+/** @brief Indicates the inspection type, used for MAV_CMD_NAV_INSP_POINT and MAV_CMD_NAV_INSP_AREA commands. */
+#ifndef HAVE_ENUM_INSPECTION_TYPE_FLAGS
+#define HAVE_ENUM_INSPECTION_TYPE_FLAGS
+typedef enum INSPECTION_TYPE_FLAGS
+{
+   VISUAL_INSPECTION=0, /* Perform a visual inspection. | */
+   UT_INSPECTION=1, /* Perform an UT inspection. | */
+   INSPECTION_TYPE_FLAGS_ENUM_END=2, /*  | */
+} INSPECTION_TYPE_FLAGS;
 #endif
 
 // MAVLINK VERSION

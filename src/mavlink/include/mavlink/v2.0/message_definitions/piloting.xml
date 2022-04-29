@@ -25,27 +25,28 @@
         <param index="6" label="Position Y" units="m">Position component y</param>
         <param index="7" label="Position Z" units="m">Position component z</param>
       </entry>
-      <entry value="42002" name="MAV_CMD_NAV_INSP_POINT_QUATERNION">
+      <entry value="42002" name="MAV_CMD_NAV_INSP_POINT">
         <description>Inspect a specific point in the 3D Space.</description>
-        <param index="1" label="Quaternion W">Quaternion component w (1 in null-rotation)</param>
-        <param index="2" label="Quaternion X">Quaternion component x (0 in null-rotation)</param>
-        <param index="3" label="Quaternion Y">Quaternion component y (0 in null-rotation)</param>
-        <param index="4" label="Quaternion Z">Quaternion component z (0 in null-rotation)</param>
+        <param index="1" label="Inspection Type">Type of inspection to be performed (see INSPECTION_TYPE_FLAGS enum)</param>
+        <param index="2" label="Param 2">Reserved</param>
+        <param index="3" label="Param 3">Reserved</param>
+        <param index="4" label="Param 4">Reserved</param>
         <param index="5" label="Position X" units="m">Position component x</param>
         <param index="6" label="Position Y" units="m">Position component y</param>
         <param index="7" label="Position Z" units="m">Position component z</param>
       </entry>
-      <entry value="42003" name="MAV_CMD_NAV_INSP_AREA_QUATERNION">
-         <description>Inspect an area in the 3D Space. Area defined with 4 consecutive commands.</description>
-         <param index="1" label="Quaternion W">Quaternion component w (1 in null-rotation)</param>
-         <param index="2" label="Quaternion X">Quaternion component x (0 in null-rotation)</param>
-         <param index="3" label="Quaternion Y">Quaternion component y (0 in null-rotation)</param>
-         <param index="4" label="Quaternion Z">Quaternion component z (0 in null-rotation)</param>
-         <param index="5" label="Position X" units="m">Position component x</param>
-         <param index="6" label="Position Y" units="m">Position component y</param>
-         <param index="7" label="Position Z" units="m">Position component z</param>
+      <entry value="42003" name="MAV_CMD_NAV_INSP_AREA">
+        <description>Inspect an area in the 3D Space. Area defined with 4 consecutive commands.</description>
+        <param index="1" label="Inspection Type">Type of inspection to be performed (see INSPECTION_TYPE_FLAGS enum)</param>
+        <param index="2" label="Param 2">Reserved</param>
+        <param index="3" label="Param 3">Reserved</param>
+        <param index="4" label="Param 4">Reserved</param>
+        <param index="5" label="Position X" units="m">Position component x</param>
+        <param index="6" label="Position Y" units="m">Position component y</param>
+        <param index="7" label="Position Z" units="m">Position component z</param>
       </entry>
     </enum>
+
     <enum name="WAYPOINT_LIST_RESULT">
       <description>Result of a waypoint list operation (in an WAYPOINT_LIST_ACK message).</description>
       <entry value="0" name="WAYPOINT_LIST_ACCEPTED">
@@ -172,6 +173,16 @@
       </entry>
       <entry value="2" name="TEXT_STATUS_INFO">
         <description>Normal operational messages. Useful for logging. No action is required for these messages.</description>
+      </entry>
+    </enum>
+
+    <enum name="INSPECTION_TYPE_FLAGS">
+      <description>Indicates the inspection type, used for MAV_CMD_NAV_INSP_POINT and MAV_CMD_NAV_INSP_AREA commands.</description>
+      <entry value="0" name="VISUAL_INSPECTION">
+        <description>Perform a visual inspection.</description>
+      </entry>
+      <entry value="1" name="UT_INSPECTION">
+        <description>Perform an UT inspection.</description>
       </entry>
     </enum>
   </enums>
