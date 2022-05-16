@@ -32,6 +32,7 @@ public:
      */
     struct WaypointItem {
         std::string task_uuid{""};
+        std::string task_type_uuid{""};
         uint16_t command{0};
         uint8_t autocontinue{0};
         float param1{0};

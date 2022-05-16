@@ -223,6 +223,7 @@ InspectionImpl::convert_to_int_items(const std::vector<InspectionBase::WaypointI
         MAVLinkInspectionTransfer::WaypointItem next_item{
             static_cast<uint16_t>(int_items.size()),
             item.task_uuid,
+            item.task_type_uuid,
             item.command,
             item.autocontinue,
             item.param1,
@@ -262,16 +263,17 @@ InspectionImpl::convert_to_result_and_waypoint_list(
     for (const auto& int_item : list.items) {
         LogDebug() << "Assembling Message: " << int(int_item.seq);
 
-        new_item.task_uuid    = int_item.task_uuid;
-        new_item.command      = int_item.command;
-        new_item.autocontinue = int_item.autocontinue;
-        new_item.param1       = int_item.param1;
-        new_item.param2       = int_item.param2;
-        new_item.param3       = int_item.param3;
-        new_item.param4       = int_item.param4;
-        new_item.x            = int_item.x;
-        new_item.y            = int_item.y;
-        new_item.z            = int_item.z;
+        new_item.task_uuid      = int_item.task_uuid;
+        new_item.task_type_uuid = int_item.task_type_uuid;
+        new_item.command        = int_item.command;
+        new_item.autocontinue   = int_item.autocontinue;
+        new_item.param1         = int_item.param1;
+        new_item.param2         = int_item.param2;
+        new_item.param3         = int_item.param3;
+        new_item.param4         = int_item.param4;
+        new_item.x              = int_item.x;
+        new_item.y              = int_item.y;
+        new_item.z              = int_item.z;
 
         result_pair.second.items.push_back(new_item);
     }

@@ -46,6 +46,7 @@ public:
     struct WaypointItem {
         uint16_t seq;
         std::string task_uuid;
+        std::string task_type_uuid;
         uint16_t command;
         uint8_t autocontinue;
         float param1;
@@ -59,8 +60,8 @@ public:
         bool operator==(const WaypointItem& other) const
         {
             return (
-                seq == other.seq && task_uuid == other.task_uuid && command == other.command &&
-                autocontinue == other.autocontinue && param1 == other.param1 &&
+                seq == other.seq && task_uuid == other.task_uuid && task_type_uuid == other.task_type_uuid &&
+                command == other.command && autocontinue == other.autocontinue && param1 == other.param1 &&
                 param2 == other.param2 && param3 == other.param3 && param4 == other.param4 &&
                 x == other.x && y == other.y && z == other.z);
         }

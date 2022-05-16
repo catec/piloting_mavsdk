@@ -198,6 +198,7 @@ void MAVLinkInspectionTransferGroundStation::UploadWorkItem::send_inspection_ite
         _sender.target_address.component_id,
         _next_sequence,
         item.task_uuid.c_str(),
+        item.task_type_uuid.c_str(),
         item.command,
         item.autocontinue,
         item.param1,
@@ -485,6 +486,7 @@ void MAVLinkInspectionTransferGroundStation::DownloadWorkItem::process_inspectio
 
     _list.items.push_back(WaypointItem{waypoint_list_item.seq,
                                        waypoint_list_item.task_uuid,
+                                       waypoint_list_item.task_type_uuid,
                                        waypoint_list_item.command,
                                        waypoint_list_item.autocontinue,
                                        waypoint_list_item.param1,

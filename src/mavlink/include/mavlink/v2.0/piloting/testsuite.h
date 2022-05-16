@@ -151,7 +151,7 @@ static void mavlink_test_waypoint_list_item(uint8_t system_id, uint8_t component
         uint8_t buffer[MAVLINK_MAX_PACKET_LEN];
         uint16_t i;
     mavlink_waypoint_list_item_t packet_in = {
-        17.0,45.0,73.0,101.0,129.0,157.0,185.0,18691,18795,101,168,"IJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQR",154
+        17.0,45.0,73.0,101.0,129.0,157.0,185.0,18691,18795,101,168,"IJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQR","TUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABC",73
     };
     mavlink_waypoint_list_item_t packet1, packet2;
         memset(&packet1, 0, sizeof(packet1));
@@ -169,6 +169,7 @@ static void mavlink_test_waypoint_list_item(uint8_t system_id, uint8_t component
         packet1.autocontinue = packet_in.autocontinue;
         
         mav_array_memcpy(packet1.task_uuid, packet_in.task_uuid, sizeof(char)*37);
+        mav_array_memcpy(packet1.task_type_uuid, packet_in.task_type_uuid, sizeof(char)*37);
         
 #ifdef MAVLINK_STATUS_FLAG_OUT_MAVLINK1
         if (status->flags & MAVLINK_STATUS_FLAG_OUT_MAVLINK1) {
@@ -182,12 +183,12 @@ static void mavlink_test_waypoint_list_item(uint8_t system_id, uint8_t component
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
 
         memset(&packet2, 0, sizeof(packet2));
-    mavlink_msg_waypoint_list_item_pack(system_id, component_id, &msg , packet1.target_system , packet1.target_component , packet1.seq , packet1.task_uuid , packet1.command , packet1.autocontinue , packet1.param1 , packet1.param2 , packet1.param3 , packet1.param4 , packet1.x , packet1.y , packet1.z );
+    mavlink_msg_waypoint_list_item_pack(system_id, component_id, &msg , packet1.target_system , packet1.target_component , packet1.seq , packet1.task_uuid , packet1.task_type_uuid , packet1.command , packet1.autocontinue , packet1.param1 , packet1.param2 , packet1.param3 , packet1.param4 , packet1.x , packet1.y , packet1.z );
     mavlink_msg_waypoint_list_item_decode(&msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
 
         memset(&packet2, 0, sizeof(packet2));
-    mavlink_msg_waypoint_list_item_pack_chan(system_id, component_id, MAVLINK_COMM_0, &msg , packet1.target_system , packet1.target_component , packet1.seq , packet1.task_uuid , packet1.command , packet1.autocontinue , packet1.param1 , packet1.param2 , packet1.param3 , packet1.param4 , packet1.x , packet1.y , packet1.z );
+    mavlink_msg_waypoint_list_item_pack_chan(system_id, component_id, MAVLINK_COMM_0, &msg , packet1.target_system , packet1.target_component , packet1.seq , packet1.task_uuid , packet1.task_type_uuid , packet1.command , packet1.autocontinue , packet1.param1 , packet1.param2 , packet1.param3 , packet1.param4 , packet1.x , packet1.y , packet1.z );
     mavlink_msg_waypoint_list_item_decode(&msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
 
@@ -200,7 +201,7 @@ static void mavlink_test_waypoint_list_item(uint8_t system_id, uint8_t component
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
         
         memset(&packet2, 0, sizeof(packet2));
-    mavlink_msg_waypoint_list_item_send(MAVLINK_COMM_1 , packet1.target_system , packet1.target_component , packet1.seq , packet1.task_uuid , packet1.command , packet1.autocontinue , packet1.param1 , packet1.param2 , packet1.param3 , packet1.param4 , packet1.x , packet1.y , packet1.z );
+    mavlink_msg_waypoint_list_item_send(MAVLINK_COMM_1 , packet1.target_system , packet1.target_component , packet1.seq , packet1.task_uuid , packet1.task_type_uuid , packet1.command , packet1.autocontinue , packet1.param1 , packet1.param2 , packet1.param3 , packet1.param4 , packet1.x , packet1.y , packet1.z );
     mavlink_msg_waypoint_list_item_decode(last_msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
 }

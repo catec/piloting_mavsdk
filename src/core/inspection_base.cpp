@@ -8,6 +8,7 @@ bool operator==(
     const InspectionBase::WaypointItem& lhs, const InspectionBase::WaypointItem& rhs)
 {
     return (rhs.task_uuid == lhs.task_uuid) &&
+           (rhs.task_type_uuid == lhs.task_type_uuid) &&
            (rhs.command == lhs.command) &&
            (rhs.autocontinue == lhs.autocontinue) &&
            ((std::isnan(rhs.param1) && std::isnan(lhs.param1)) ||
@@ -32,6 +33,7 @@ std::ostream& operator<<(std::ostream& str, InspectionBase::WaypointItem const& 
     str << "waypoint_item:\n";
     str << "{\n";
     str << "    task_uuid: " << item.task_uuid << '\n';
+    str << "    task_type_uuid: " << item.task_type_uuid << '\n';
     str << "    command: " << item.command << '\n';
     str << "    autocontinue: " << unsigned(item.autocontinue) << '\n';
     str << "    param1: " << item.param1 << '\n';

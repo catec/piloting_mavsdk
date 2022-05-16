@@ -17,6 +17,7 @@ using namespace std::chrono;
 
 static InspectionBase::WaypointItem make_waypoint_item(
     std::string task_uuid,
+    std::string task_type_uuid,
     uint16_t command,
     uint8_t autocontinue,
     float param1,
@@ -70,11 +71,11 @@ int main(int, char**)
         std::cout << "Creating inspection to be sent..." << std::endl;
         std::vector<InspectionBase::WaypointItem> waypoint_items;
         waypoint_items.push_back(make_waypoint_item(
-            "204d19ef-7e77-4804-a1ff-5602bbac60e5", MAV_CMD_NAV_WAYPOINT, 1, 1.1f, 2.2f, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f));
+            "204d19ef-7e77-4804-a1ff-5602bbac60e5", "948f58ab-909a-4080-ae73-d728185b5cbd", MAV_CMD_NAV_WAYPOINT, 1, 1.1f, 2.2f, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f));
         waypoint_items.push_back(make_waypoint_item(
-            "895e355b-99c4-4389-9273-d20eff6a6cc9", MAV_CMD_NAV_WAYPOINT, 1, 2.2f, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f, 8.8f));
+            "895e355b-99c4-4389-9273-d20eff6a6cc9", "948f58ab-909a-4080-ae73-d728185b5cbd", MAV_CMD_NAV_WAYPOINT, 1, 2.2f, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f, 8.8f));
         waypoint_items.push_back(make_waypoint_item(
-            "98a1161c-5f77-426a-b1f4-dfefee1d2257", MAV_CMD_NAV_WAYPOINT, 1, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f, 8.8f, 9.9f));
+            "98a1161c-5f77-426a-b1f4-dfefee1d2257", "948f58ab-909a-4080-ae73-d728185b5cbd", MAV_CMD_NAV_WAYPOINT, 1, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f, 8.8f, 9.9f));
         InspectionBase::WaypointList waypoint_list{};
         waypoint_list.plan_uuid = "79043d91-080a-4807-8073-d28f6b869b8a";
         waypoint_list.sync_id = 45131267;
@@ -134,6 +135,7 @@ int main(int, char**)
 
 InspectionBase::WaypointItem make_waypoint_item(
     std::string task_uuid,
+    std::string task_type_uuid,
     uint16_t command,
     uint8_t autocontinue,
     float param1,
@@ -146,6 +148,7 @@ InspectionBase::WaypointItem make_waypoint_item(
 {
     InspectionBase::WaypointItem new_item{};
     new_item.task_uuid = task_uuid;
+    new_item.task_type_uuid = task_type_uuid;
     new_item.command = command;
     new_item.autocontinue = autocontinue;
     new_item.param1 = param1;

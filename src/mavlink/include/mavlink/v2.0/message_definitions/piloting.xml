@@ -27,7 +27,7 @@
       </entry>
       <entry value="42002" name="MAV_CMD_NAV_INSP_POINT">
         <description>Inspect a specific point in the 3D Space.</description>
-        <param index="1" label="Inspection Type">Type of inspection to be performed (see INSPECTION_TYPE_FLAGS enum)</param>
+        <param index="1" label="Param 1">Reserved</param>
         <param index="2" label="Param 2">Reserved</param>
         <param index="3" label="Param 3">Reserved</param>
         <param index="4" label="Param 4">Reserved</param>
@@ -37,7 +37,7 @@
       </entry>
       <entry value="42003" name="MAV_CMD_NAV_INSP_AREA">
         <description>Inspect an area in the 3D Space. Area defined with 4 consecutive commands.</description>
-        <param index="1" label="Inspection Type">Type of inspection to be performed (see INSPECTION_TYPE_FLAGS enum)</param>
+        <param index="1" label="Param 1">Reserved</param>
         <param index="2" label="Param 2">Reserved</param>
         <param index="3" label="Param 3">Reserved</param>
         <param index="4" label="Param 4">Reserved</param>
@@ -175,16 +175,6 @@
         <description>Normal operational messages. Useful for logging. No action is required for these messages.</description>
       </entry>
     </enum>
-
-    <enum name="INSPECTION_TYPE_FLAGS">
-      <description>Indicates the inspection type, used for MAV_CMD_NAV_INSP_POINT and MAV_CMD_NAV_INSP_AREA commands.</description>
-      <entry value="0" name="VISUAL_INSPECTION">
-        <description>Perform a visual inspection.</description>
-      </entry>
-      <entry value="1" name="UT_INSPECTION">
-        <description>Perform an UT inspection.</description>
-      </entry>
-    </enum>
   </enums>
   <messages>
     <message id="180" name="WAYPOINT_LIST_COUNT">
@@ -207,6 +197,7 @@
       <field type="uint8_t" name="target_component">Component ID</field>
       <field type="uint16_t" name="seq">Waypoint ID (sequence number). Starts at zero. Increases monotonically for each waypoint, no gaps in the sequence (0,1,2,3,4)</field>
       <field type="char[37]" name="task_uuid">Identifier of the associated inspection task</field>
+      <field type="char[37]" name="task_type_uuid">Identifier of the associated inspection task type</field>
       <field type="uint16_t" name="command" enum="MAV_CMD">The scheduled action for the waypoint (see MAV_CMD enum)</field>
       <field type="uint8_t" name="autocontinue">Autocontinue to next waypoint</field>
       <field type="float" name="param1">PARAM1, see MAV_CMD enum</field>
