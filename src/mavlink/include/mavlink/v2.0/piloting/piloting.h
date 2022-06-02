@@ -204,7 +204,11 @@ typedef enum MAV_CMD
    MAV_CMD_DO_SET_HOME_QUATERNION=42001, /* Changes the home location either to a specified location. |Quaternion component w (1 in null-rotation)| Quaternion component x (0 in null-rotation)| Quaternion component y (0 in null-rotation)| Quaternion component z (0 in null-rotation)| Position component x| Position component y| Position component z|  */
    MAV_CMD_NAV_INSP_POINT=42002, /* Inspect a specific point in the 3D Space. |Reserved| Reserved| Reserved| Reserved| Position component x| Position component y| Position component z|  */
    MAV_CMD_NAV_INSP_AREA=42003, /* Inspect an area in the 3D Space. Area defined with 4 consecutive commands. |Reserved| Reserved| Reserved| Reserved| Position component x| Position component y| Position component z|  */
+   MAV_CMD_TAKE_PHOTO=42004, /* Take a picture |Reserved| Reserved| Reserved| Reserved| Position component x| Position component y| Position component z|  */
+   MAV_CMD_MANIPULATE_VALVE=42005, /* Valve manipulation with a robotic arm. |Turning angle in radians.| Turning direction [1.0 = clockwise; -1.0 = counterclockwise]| Reserved| Reserved| Position component x| Position component y| Position component z|  */
    MAV_CMD_FIXED_MAG_CAL_YAW=42006, /* Magnetometer calibration based on provided known yaw. This allows for fast calibration using WMM field tables in the vehicle, given only the known yaw of the vehicle. If Latitude and longitude are both zero then use the current vehicle location. |Yaw of vehicle in earth frame.| CompassMask, 0 for all.| Latitude.| Longitude.| Empty.| Empty.| Empty.|  */
+   MAV_CMD_PLACE_OBJECT=42007, /* Place a object in the 3D space. |Object type: [0: Sensor, 1: Sticker].| Reserved| Reserved| Reserved| Position component x| Position component y| Position component z|  */
+   MAV_CMD_STICK_TO_THE_CEILING=42008, /* Stick robot to the ceiling. |Reserved| Reserved| Reserved| Reserved| Position component x| Position component y| Position component z|  */
    MAV_CMD_DO_WINCH=42600, /* Command to operate winch. |Winch instance number.| Action to perform.| Length of cable to release (negative to wind).| Release rate (negative to wind).| Empty.| Empty.| Empty.|  */
    MAV_CMD_ENUM_END=42601, /*  | */
 } MAV_CMD;
